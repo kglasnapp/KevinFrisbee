@@ -83,7 +83,7 @@ public class Config {
     public boolean shooter = true;
     public boolean shooterVelocityPID = true;
     public int shooterID = 12;
-    public double ShooterSpeedLow = .1;
+    public double ShooterSpeedLow = .2;
     public double ShooterSpeedMedium = .3;
     public double ShooterSpeedHigh = .5;
 
@@ -129,7 +129,7 @@ public class Config {
                     logf("Set parms for Mini Sibling\n");
                     driveRightFollow = -4;
                     driveLeftFollow = -5;
-                    driveTicksPerInch = 525 / 24;
+                    driveTicksPerInch = 400 / 12;
                     pneumaticType = PneumaticsModuleType.REVPH;
                 }
                 shooterID = 12;

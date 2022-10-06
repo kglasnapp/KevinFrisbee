@@ -294,8 +294,7 @@ public class Drivetrain extends SubsystemBase {
 
     // Get the distance the robot has traveled in inches
     public double getDistanceInches() {
-        double ticks = (Math.abs(rightStart - getRightEncoder()) + Math.abs(leftStart - getLeftEncoder())) / 2.0;
-        return ticks / Robot.config.driveTicksPerInch;
+        return (Math.abs(rightDistInches()) + Math.abs(rightDistInches())) / 2.0;
     }
 
     public double rightDistInches() {

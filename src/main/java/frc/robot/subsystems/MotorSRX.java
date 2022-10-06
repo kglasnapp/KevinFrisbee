@@ -117,10 +117,6 @@ public class MotorSRX  extends SubsystemBase implements MotorDef {
         return motor.getSelectedSensorVelocity(0);
     }
 
-    public TalonSRX getMotor() {
-        return motor;
-    }
-
     public void periodic() {
         if (!Robot.config.showMotorData)
             return;
@@ -150,7 +146,6 @@ public class MotorSRX  extends SubsystemBase implements MotorDef {
                 }
             }
         }
-
     }
 
     public void setCurrentLimit(int peakAmps, int continousAmps, int durationMilliseconds) {
@@ -197,28 +192,28 @@ public class MotorSRX  extends SubsystemBase implements MotorDef {
 
     public void setPositionPID(PID pid, FeedbackDevice feedBack) {
         feedBackDevice = feedBack;
-        setPositionPID(motor, 0, pid);
-        PIDToSRX(motor, pid, 0, Robot.config.kTimeoutMs);
+        setPositionPID(0, pid);
+        PIDToMotor( pid, 0, Robot.config.kTimeoutMs);
     }
 
     public void setVelocityPID(PID pid) { // tod at some point fix this name
-        PIDToSRX(motor, pid, 0, Robot.config.kTimeoutMs);
+        PIDToMotor(pid, 0, Robot.config.kTimeoutMs);
     }
 
     public  double getMotorVoltage() {
         return motor.getMotorOutputVoltage();
     }
 
-    public void PIDToSRX(TalonSRX srx, PID pid, int slot, int timeout) {
-        srx.config_kP(slot, pid.kP, timeout);
-        srx.config_kI(slot, pid.kI, timeout);
-        srx.config_kD(slot, pid.kD, timeout);
-        srx.config_kF(slot, pid.kFF, timeout);
-        srx.configPeakOutputForward(pid.kMaxOutput);
-        srx.configPeakOutputReverse(pid.kMinOutput);
-        srx.config_IntegralZone(slot, (int) pid.kIz, timeout);
-        srx.configAllowableClosedloopError(slot, pid.allowableCloseLoopError, timeout);
-        srx.configMaxIntegralAccumulator(slot, pid.maxIntegralAccumulation, timeout);
+    public void PIDToMotor( PID pid, int slot, int timeout) {
+        motor.config_kP(slot, pid.kP, timeout);
+        motor.config_kI(slot, pid.kI, timeout);
+        motor.config_kD(slot, pid.kD, timeout);
+        motor.config_kF(slot, pid.kFF, timeout);
+        motor.configPeakOutputForward(pid.kMaxOutput);
+        motor.configPeakOutputReverse(pid.kMinOutput);
+        motor.config_IntegralZone(slot, (int) pid.kIz, timeout);
+        motor.configAllowableClosedloopError(slot, pid.allowableCloseLoopError, timeout);
+        motor.configMaxIntegralAccumulator(slot, pid.maxIntegralAccumulation, timeout);
         logf("Setup %s PID for %s slot %d %s\n", pid.name, name, slot, pid.getPidData());
     }
 
@@ -228,14 +223,18 @@ public class MotorSRX  extends SubsystemBase implements MotorDef {
 
     public void logMotorVCS() {
         if (Math.abs(lastSpeed) > .02) {
-            logf("%s\n", getMotorsVCS(motor));
+            logf("%s\n", getMotorsVCS());
             if (followId > 0) {
                 logf("%s\n", getMotorsVCS(followMotor));
             }
         }
     }
 
-    public String getMotorsVCS(TalonSRX motor) {
+    public String getMotorsVCS() {
+        return getMotorsVCS(motor);
+    }
+
+    private String getMotorsVCS(TalonSRX motor) {
         if (Math.abs(lastSpeed) > .02) {
             double bussVoltage = motor.getBusVoltage();
             double outputVoltage = motor.getMotorOutputVoltage();
@@ -257,26 +256,26 @@ public class MotorSRX  extends SubsystemBase implements MotorDef {
         motor.setSensorPhase(phase);
     }
 
-    public  void setPositionPID(TalonSRX talon, int pidIdx, PID pid) {
+    public  void setPositionPID( int pidIdx, PID pid) {
         // Config the sensor used for Primary PID and sensor direction
-        talon.configSelectedFeedbackSensor(feedBackDevice, pidIdx, Robot.config.kTimeoutMs);
+        motor.configSelectedFeedbackSensor(feedBackDevice, pidIdx, Robot.config.kTimeoutMs);
 
         // Ensure sensor is positive when output is positive
-        talon.setSensorPhase(sensorPhase);
+       motor.setSensorPhase(sensorPhase);
 
         // Set based on what direction you want forward/positive to be.
         // This does not affect sensor phase.
-        talon.setInverted(motorInvert);
+       motor.setInverted(motorInvert);
 
         /* Config the peak and nominal outputs, 12V means full */
-        talon.configNominalOutputForward(0, Robot.config.kTimeoutMs);
-        talon.configNominalOutputReverse(0, Robot.config.kTimeoutMs);
-        talon.configPeakOutputForward(pid.kMaxOutput, Robot.config.kTimeoutMs);
-        talon.configPeakOutputReverse(pid.kMinOutput, Robot.config.kTimeoutMs);
+       motor.configNominalOutputForward(0, Robot.config.kTimeoutMs);
+       motor.configNominalOutputReverse(0, Robot.config.kTimeoutMs);
+       motor.configPeakOutputForward(pid.kMaxOutput, Robot.config.kTimeoutMs);
+       motor.configPeakOutputReverse(pid.kMinOutput, Robot.config.kTimeoutMs);
 
         // Config the allowable closed-loop error, Closed-Loop output will be neutral
         // within this range. See Table in Section 17.2.1 for native units per rotation.
-        talon.configAllowableClosedloopError(0, pidIdx, Robot.config.kTimeoutMs);
+       motor.configAllowableClosedloopError(0, pidIdx, Robot.config.kTimeoutMs);
     }
 
     public  void setRampCloseLoopRamp(double rate) {

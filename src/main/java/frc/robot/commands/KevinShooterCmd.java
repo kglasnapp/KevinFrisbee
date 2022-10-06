@@ -15,7 +15,7 @@ public class KevinShooterCmd extends CommandBase {
     private ShooterMode mode = ShooterMode.STOPPED;
 
     enum State {
-        IDLE, START_SHOOT, DROP_FRISBEE, PUSH_FRISBEE, WAIT_FOR_SPEED, SHOOTER_REVERSE
+        IDLE, START_SHOOT, DROP_FRISBEE, PUSH_FRISBEE, WAIT_FOR_SPEED, SHOOTER_REVERSE, RUMBLE
     };
 
     private State state = State.IDLE;
@@ -129,9 +129,11 @@ public class KevinShooterCmd extends CommandBase {
                 }
                 if (delay < 0) {
                     logf("!!!!! Shooter not up to speed in allocated time\n");
-                    // TODO Do rumble on operator PAD
-                    state = State.IDLE;
-                    return true;
+                    state = State.RUMBLE;
+                    delay = 25;
+                    Robot.joysticks.setLeftRumble(1);
+                    Robot.joysticks.setRightRumble(1);
+                    return false;
                 }
                 return false;
 
@@ -150,6 +152,16 @@ public class KevinShooterCmd extends CommandBase {
                 if (delay < 0) {
                     Robot.shooter.stopShooter();
                     state = State.IDLE;
+                    return true;
+                }
+                return false;
+
+            case RUMBLE:
+                delay--;
+                if (delay < 0) {
+                    Robot.joysticks.setLeftRumble(0);
+                    Robot.joysticks.setRightRumble(0);
+                    logf("Rumble off\n");
                     return true;
                 }
                 return false;

@@ -4,6 +4,7 @@ import static frc.robot.utilities.Util.logf;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import frc.robot.Robot;
 
 public class Joysticks {
@@ -40,6 +41,7 @@ public class Joysticks {
     public boolean getJoysPresent() {
         return joysticksPresent;
     }
+
     public void initJoySticksForDriveMode() {
         logf("Set Joy Stick Drive Mode\n");
         leftJoy = new Joystick(0);
@@ -64,5 +66,13 @@ public class Joysticks {
 
     public Joystick getOperatorJoy() {
         return operator;
+    }
+
+    public void setLeftRumble(double value) {
+        operator.setRumble(RumbleType.kLeftRumble, value);
+    }
+
+    public void setRightRumble(double value) {
+        operator.setRumble(RumbleType.kRightRumble, value);
     }
 }

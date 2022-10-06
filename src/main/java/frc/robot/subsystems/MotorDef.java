@@ -1,7 +1,6 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
-import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 
 public interface MotorDef {
    // public MotorSrx(String name, int Id, int followId, boolean logging);
@@ -57,20 +56,20 @@ public interface MotorDef {
 
     double getMotorVoltage();
 
-    public void PIDToSRX(TalonSRX srx, PID pid, int slot, int timeout);
+    public void PIDToMotor( PID pid, int slot, int timeout);
 
     public double getError();
 
     public void logMotorVCS();
 
-    public String getMotorsVCS(TalonSRX motor);
+    public String getMotorsVCS();
 
     public double getMotorCurrent();
 
     public void setSensorPhase(boolean phase);
 
     // Config the sensor used for Primary PID and sensor direction
-    public void setPositionPID(TalonSRX talon, int pidIdx, PID pid);
+    public void setPositionPID(int pidIdx, PID pid);
 
     void setRampCloseLoopRamp(double rate);
 

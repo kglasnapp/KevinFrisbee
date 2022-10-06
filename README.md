@@ -13,8 +13,8 @@
 
 # Motors ID's
 * 2 Right Drive
-* 4 Right Follow
 * 3 Left Drive
+* 4 Right Follow
 * 5 Left Follow
 * 12 Shooter 
 
@@ -27,5 +27,8 @@
 
 # SW Items needed
 * Add vision logic for April tags
-* Test shoot logic
+* Test shoot logic with real robot
+* Test arcade drive
+* Add blinking lamp on PCM
+* Get rumble working
 * Finish up the motor interface for the other motor types

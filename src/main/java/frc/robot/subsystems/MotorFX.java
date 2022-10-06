@@ -15,6 +15,7 @@ import com.ctre.phoenix.motorcontrol.SupplyCurrentLimitConfiguration;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 
 // setSensorPhase() should change the direction reported in the getSelectedSensor*() methods 
@@ -22,7 +23,7 @@ import frc.robot.Robot;
 // It should also change the direction reported for "PID0" in a self-test snapshot, 
 // but not the position reported by "Quad/MagEnc(rel)" 
 
-public class MotorFX {
+public class MotorFX extends SubsystemBase implements MotorDef {
     private TalonFX motor;
     private TalonFX followMotor;
     private String name;
@@ -36,7 +37,8 @@ public class MotorFX {
 
     private boolean sensorPhase = false;
     private boolean motorInvert = false;
-    // private FeedbackDevice feedBackDevice = FeedbackDevice.CTRE_MagEncoder_Relative;
+    // private FeedbackDevice feedBackDevice =
+    // FeedbackDevice.CTRE_MagEncoder_Relative;
 
     MotorFX(String name, int id, int followId, boolean logging) {
         this.name = name;
@@ -73,33 +75,33 @@ public class MotorFX {
     public String getName() {
         return name;
     }
-    
+
     public int getPos() {
         return (int) motor.getSelectedSensorPosition();
     }
 
-    void enableLimitSwitch(boolean forward, boolean reverse) {
+    public void enableLimitSwitch(boolean forward, boolean reverse) {
         if (forward)
             motor.configForwardLimitSwitchSource(LimitSwitchSource.FeedbackConnector, LimitSwitchNormal.NormallyOpen);
         if (reverse)
             motor.configReverseLimitSwitchSource(LimitSwitchSource.FeedbackConnector, LimitSwitchNormal.NormallyOpen);
     }
 
-    boolean getForwardLimitSwitch() {
+    public boolean getForwardLimitSwitch() {
         return motor.getSensorCollection().isFwdLimitSwitchClosed() == 1;
     }
 
-    boolean getReverseLimitSwitch() {
+    public boolean getReverseLimitSwitch() {
         return motor.getSensorCollection().isRevLimitSwitchClosed() == 1;
     }
 
-    void setBrakeMode(boolean mode) {
+    public void setBrakeMode(boolean mode) {
         motor.setNeutralMode(mode ? NeutralMode.Brake : NeutralMode.Coast);
         if (followId > 0)
             followMotor.setNeutralMode(mode ? NeutralMode.Brake : NeutralMode.Coast);
     }
 
-    void setPos(double position) {
+    public void setPos(double position) {
         motor.set(ControlMode.Position, position);
     }
 
@@ -126,11 +128,11 @@ public class MotorFX {
         return motor.getSelectedSensorVelocity(0);
     }
 
-    public TalonFX getMotor() {
-        return motor;
+    public double getActualVelocity() {
+        return motor.getSelectedSensorVelocity(0);
     }
 
-    void periodic() {
+    public void periodic() {
         if (!Robot.config.showMotorData)
             return;
         if (count % 50 == 0 && logging) {
@@ -198,36 +200,51 @@ public class MotorFX {
         motor.set(ControlMode.PercentOutput, 0.001);
     }
 
-    void zeroEncoder() {
+    public void setSpeedAbsolute(double speed) {
+        motor.set(ControlMode.PercentOutput, speed);
+        lastSpeed = speed;
+    }
+
+    public void stopMotor() {
+        motor.set(ControlMode.PercentOutput, 0);
+        lastSpeed = 0;
+    }
+
+    public void zeroEncoder() {
         motor.setSelectedSensorPosition(0);
     }
 
-    void setEncoderPosition(double position) {
+    public void setEncoderPosition(double position) {
         motor.getSensorCollection().setIntegratedSensorPosition((int) position, Robot.config.kTimeoutMs);
     }
 
-    void setPositionPID(PID pid, FeedbackDevice feedBack) {
-        //feedBackDevice = feedBack;
-        setPositionPID(motor, 0, pid);
-        PIDToFX(motor, pid, 0, Robot.config.kTimeoutMs);
+    public void setPositionPID(PID pid, FeedbackDevice feedBack) {
+        // feedBackDevice = feedBack;
+        setPositionPID(0, pid);
+        PIDToMotor(pid, 0, Robot.config.kTimeoutMs);
     }
 
-    void setVelocityPID(PID pid) {
-        PIDToFX(motor, pid, 1, Robot.config.kTimeoutMs);
+    public void setVelocityPID(PID pid) {
+        PIDToMotor(pid, 1, Robot.config.kTimeoutMs);
     }
 
-    double getMotorVoltage() {
+    public double getMotorVoltage() {
         return motor.getMotorOutputVoltage();
     }
 
-    public void PIDToFX(TalonFX srx, PID pid, int slot, int timeout) {
-        srx.config_kP(slot, pid.kP, timeout);
-        srx.config_kI(slot, pid.kI, timeout);
-        srx.config_kD(slot, pid.kD, timeout);
-        srx.config_kF(slot, pid.kFF, timeout);
-        srx.config_IntegralZone(slot, (int) pid.kIz, timeout);
-        srx.configAllowableClosedloopError(slot, pid.allowableCloseLoopError, timeout);
-        srx.configMaxIntegralAccumulator(slot, pid.maxIntegralAccumulation, timeout);
+    public void setVelocity(double velocity) {
+        // logf("!!!! Set Velocity for %s to %.0f\n", name, velocity);
+        motor.set(ControlMode.Velocity, velocity);
+    }
+
+    public void PIDToMotor(PID pid, int slot, int timeout) {
+        motor.config_kP(slot, pid.kP, timeout);
+        motor.config_kI(slot, pid.kI, timeout);
+        motor.config_kD(slot, pid.kD, timeout);
+        motor.config_kF(slot, pid.kFF, timeout);
+        motor.config_IntegralZone(slot, (int) pid.kIz, timeout);
+        motor.configAllowableClosedloopError(slot, pid.allowableCloseLoopError, timeout);
+        motor.configMaxIntegralAccumulator(slot, pid.maxIntegralAccumulation, timeout);
         logf("Setup %s PID for %s slot %d %s\n", pid.name, name, slot, pid.getPidData());
     }
 
@@ -244,7 +261,11 @@ public class MotorFX {
         }
     }
 
-    public String getMotorsVCS(TalonFX motor) {
+    public String getMotorsVCS() {
+        return getMotorsVCS(motor);
+    }
+
+    private String getMotorsVCS(TalonFX motor) {
         if (Math.abs(lastSpeed) > .02) {
             double bussVoltage = motor.getBusVoltage();
             double outputVoltage = motor.getMotorOutputVoltage();
@@ -266,29 +287,27 @@ public class MotorFX {
         motor.setSensorPhase(phase);
     }
 
-    private void setPositionPID(TalonFX talon, int pidIdx, PID pid) {
+    public void setRampCloseLoopRamp(double rate) {
+        // Rate is secondsFromNeutralToFull
+        motor.configClosedloopRamp(rate);
+    }
+
+    public void setRampOpenLoopRamp(double rate) {
+        // Rate is secondsFromNeutralToFull
+        motor.configOpenloopRamp(rate);
+    }
+
+    public void setPositionPID(int pidIdx, PID pid) {
         // Config the sensor used for Primary PID and sensor direction
 
-        // talon.configSelectedFeedbackSensor(feedBackDevice, pidIdx,
-        // Robot.config.kTimeoutMs);
-
-        // Ensure sensor is positive when output is positive
-        // talon.setSensorPhase(sensorPhase);
-
-        // Set based on what direction you want forward/positive to be.
-        // This does not affect sensor phase.
-
-        // will need to do for follow motor -- take out and check climber code
-        // talon.setInverted(motorInvert);
-
         /* Config the peak and nominal outputs, 12V means full */
-        talon.configNominalOutputForward(0, Robot.config.kTimeoutMs);
-        talon.configNominalOutputReverse(0, Robot.config.kTimeoutMs);
-        talon.configPeakOutputForward(pid.kMaxOutput, Robot.config.kTimeoutMs);
-        talon.configPeakOutputReverse(pid.kMinOutput, Robot.config.kTimeoutMs);
+        motor.configNominalOutputForward(0, Robot.config.kTimeoutMs);
+        motor.configNominalOutputReverse(0, Robot.config.kTimeoutMs);
+        motor.configPeakOutputForward(pid.kMaxOutput, Robot.config.kTimeoutMs);
+        motor.configPeakOutputReverse(pid.kMinOutput, Robot.config.kTimeoutMs);
 
         // Config the allowable closed-loop error, Closed-Loop output will be neutral
         // within this range. See Table in Section 17.2.1 for native units per rotation.
-        talon.configAllowableClosedloopError(0, pidIdx, Robot.config.kTimeoutMs);
+        motor.configAllowableClosedloopError(0, pidIdx, Robot.config.kTimeoutMs);
     }
 }
