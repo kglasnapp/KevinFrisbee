@@ -9,10 +9,9 @@ import static frc.robot.utilities.Util.logf;
 public class KevinShooter extends SubsystemBase {
   private MotorSRX shooterMotor;
   private double lastSpeed = 0;
-  private MotorSRX backspinMotor;
-  private PID shooterPID; // PID for shooter velocity
-  private double lastShooterVelocity;
   private int lastPOV = -1;
+  private MySolenoidPCM pushFrisbee;
+  private MySolenoidPCM dropFrisbee;
 
   // Current threshold to trigger current limit
   private int kPeakCurrentAmps = 10;
@@ -23,14 +22,13 @@ public class KevinShooter extends SubsystemBase {
 
   public KevinShooter() {
     shooterMotor = new MotorSRX("Shooter", Robot.config.shooterID, -1, true);
-
-    // shooterPID = new PID("Shooter", 0.045, .00007, .7, 0, 0, -1, 1, false); //
-    // Seems to work still a lot of oscillations
-    shooterPID = new PID("Shooter", .35, .00002, .5, 0, 0, -1, 1, false); // With overshoot 0.00007 .7
-    shooterMotor.setSensorPhase(false);
-    shooterMotor.setVelocityPID(shooterPID);
     shooterMotor.setBrakeMode(false);
-    shooterMotor.setCurrentLimit(kPeakCurrentAmps, kContinCurrentAmps,kPeakTimeMs);
+    shooterMotor.setCurrentLimit(kPeakCurrentAmps, kContinCurrentAmps, kPeakTimeMs);
+    
+    // Define the solenoids for the pneumatics
+    pushFrisbee = new MySolenoidPCM("Pusher", 1, 0, 1, true);
+    dropFrisbee = new MySolenoidPCM("Drop", 1, 2, 3, true);
+
     logf("Kevin shooter is setup at ID:%d\n", Robot.config.shooterID);
   }
 
@@ -40,16 +38,16 @@ public class KevinShooter extends SubsystemBase {
     int operatorPOV = Joysticks.operator.getPOV();
     // Set shooter speed based upon operator POV
     if (operatorPOV >= 0 && Robot.config.shooterVelocityPID && lastPOV != operatorPOV) {
-        double[] shootSpeed = {0, Robot.config.ShooterSpeedPIDLow, Robot.config.ShooterSpeedPIDMedium, Robot.config.ShooterSpeedPIDHigh  };
-        double newVelocity = shootSpeed[operatorPOV / 90];
-        logf("Set new shooter velocity:%.2f\n", newVelocity);
-        setShooterVelocity(newVelocity);
-    } 
+      double[] shootSpeed = { 0, Robot.config.ShooterSpeedLow, Robot.config.ShooterSpeedMedium,
+          Robot.config.ShooterSpeedHigh };
+      double newVelocity = shootSpeed[operatorPOV / 90];
+      setShooterSpeed(newVelocity);
+    }
     if (Robot.count % 500 == 200 && getShooterSpeed() > 0) {
       logf("Shooter speed:%.2f req:%.2\n", getShooterSpeed(), lastSpeed);
     }
     if (Robot.count % 15 == 6) {
-      SmartDashboard.putNumber("Sh Sp", getShooterSpeed());
+      SmartDashboard.putNumber("Sh Current", getMotorCurrent());
     }
   }
 
@@ -62,34 +60,36 @@ public class KevinShooter extends SubsystemBase {
     lastSpeed = speed;
   }
 
-  public void setShooterVelocity(double velocity) {
-    lastShooterVelocity = velocity;
-    shooterMotor.setVelocity(velocity);
-  }
-
   public double getShooterSpeed() {
     return shooterMotor.getActualVelocity();
   }
 
-  public double getBackSpinSpeed() {
-    return backspinMotor.getActualVelocity();
-  }
-
-  double range(double val, double fromMin, double fromMax, double toMin, double toMax) {
-    return (val - fromMin) * (toMax - toMin) / (fromMax - fromMin) + toMin;
-  }
-
-  public double getRequestedVelocity() {
-    return lastShooterVelocity;
+  public double getMotorCurrent() {
+    return shooterMotor.getMotorCurrent();
   }
 
   public void stopShooter() {
     shooterMotor.stopMotor();
   }
 
-  public void shooterOut() {
+  public void shooterReverse() {
     logf("Start shooter reverse\n");
-    shooterMotor.setVelocity(-10020); // arbitrary rpm to spit out ball if stuck
+    shooterMotor.setSpeed(-0.5); // arbitrary rpm to spit out Fribee if stuck
   }
 
+  public void activatePusher() {
+    pushFrisbee.pulseA();
+  }
+
+  public void releasePusher() {
+    pushFrisbee.pulseB();
+  }
+
+  public void activateDroper() {
+    dropFrisbee.pulseA();
+  }
+
+  public void releaseDroper() {
+    dropFrisbee.pulseB();
+  }
 }

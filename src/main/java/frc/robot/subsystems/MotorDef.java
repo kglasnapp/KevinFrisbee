@@ -3,7 +3,7 @@ package frc.robot.subsystems;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 
-public interface MotorInterface {
+public interface MotorDef {
    // public MotorSrx(String name, int Id, int followId, boolean logging);
 
     public int getPos();

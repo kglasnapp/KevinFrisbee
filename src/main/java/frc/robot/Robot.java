@@ -71,9 +71,10 @@ public class Robot extends TimedRobot {
   public static int location;
   public static DriveMode driveMode = DriveMode.OPERATOR_MILD;
   public static boolean driveJoy = false;
+  public static boolean driveArcade = false;
 
   public enum DriveMode {
-    NOT_ASSIGNED, JOY_AGRESSIVE, JOY_MILD, OPERATOR_AGRESSIVE, OPERATOR_MILD
+    NOT_ASSIGNED, JOY_AGRESSIVE, JOY_MILD, OPERATOR_AGRESSIVE, OPERATOR_MILD, ARCADE_MILD, ARCADE_AGRESSIVE
   };
 
   // A chooser for autonomous commands
@@ -95,10 +96,6 @@ public class Robot extends TimedRobot {
     drivetrain = new Drivetrain();
     drivetrain.setBrakeMode(false);
     oi = new OI();
-
-    // t = new Limelight();
-    // t.getV();
-
     yawNavX = new YawProvider();
     if (Robot.config.PneumaticHUB)
       pHub = new PneumaticHub();
@@ -134,6 +131,8 @@ public class Robot extends TimedRobot {
     driveChooser.addOption("Dual Joystick Aggressive", DriveMode.JOY_AGRESSIVE);
     driveChooser.addOption("Game Pad Aggressive", DriveMode.OPERATOR_AGRESSIVE);
     driveChooser.addOption("Dual Joystick Mild", DriveMode.JOY_MILD);
+    driveChooser.addOption("Arcade Mode Mild", DriveMode.ARCADE_MILD);
+    driveChooser.addOption("Arcade Mode Aggressive", DriveMode.ARCADE_MILD);
     // Put the chooser on the dashboard
     SmartDashboard.putData("Drive Type", (Sendable) driveChooser);
 
@@ -169,6 +168,9 @@ public class Robot extends TimedRobot {
     // Put Yaw on smart dashbaord every 0.5 seconds
     if (count % 25 == 16) {
       SmartDashboard.putNumber("Yaw", round2(yaw));
+    }
+    if (count == 10) {
+      vision.cameraLight(false);
     }
     if (Robot.count % 5 == 0 && distanceSensors != null) {
       frontDistance = distanceSensors.getFrontDistance();
@@ -224,7 +226,7 @@ public class Robot extends TimedRobot {
 
     // Log GC and Max loop data every minute
     if (count % (50 * 60) == 210) {
-      logf("Loop Count %s  Garage Collection %s\n", loopData.Show(true), gcData.Show(true));
+      logf("Loop Count %s Garbage Collector %s\n", loopData.Show(true), gcData.Show(true));
     }
     // if (config.BlinkTarget && (count % 50 == 0)) {
     // visionLight.toggleTargetingLight();
@@ -237,7 +239,6 @@ public class Robot extends TimedRobot {
     logf("Robot was disabled\n");
     if (shooter != null) {
       shooter.stopShooter(); // stop shooter from spinning on enable if spinning during disable
-      shooter.setShooterVelocity(0); // redundency to ensure velocity number reflects motor
     }
     if (shooter != null) {
       shooter.stopShooter(); // stop shooter from spinning on enable if spinning during disable

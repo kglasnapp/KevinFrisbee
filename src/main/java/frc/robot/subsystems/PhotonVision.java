@@ -38,10 +38,6 @@ public class PhotonVision extends SubsystemBase implements VisionData {
                 logf("!!!!!!!!!!!  No Vision Camera\n");
             return;
         }
-        if (Robot.count % 50 == 23) {
-            camera.setLED(VisionLEDMode.kOn);
-            lightState = true;
-        }
         tv = result.hasTargets();
         if (Robot.count % 20 == 10) {
             SmartDashboard.putBoolean("tv", tv);

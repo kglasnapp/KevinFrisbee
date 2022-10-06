@@ -10,6 +10,7 @@ public class MinMaxAvg {
         max = Math.max(max, data);
         min = Math.min(min, data);
         sum += data;
+        count += 1;
     }
 
     public String Show(boolean zero) {

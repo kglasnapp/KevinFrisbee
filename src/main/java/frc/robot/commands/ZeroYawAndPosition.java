@@ -15,20 +15,21 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
 import static frc.robot.utilities.Util.logf;
 
-public class ZeroYaw extends CommandBase {
+public class ZeroYawAndPosition extends CommandBase {
 
     double initialX = Robot.config.initialPoseX;
     double initialY = Robot.config.initialPoseY;
+    Rotation2d gyroAngle;
 
-    public ZeroYaw() {
+    public ZeroYawAndPosition() {
         // Use requires() here to declare subsystem dependencies
     }
 
-    public ZeroYaw(double initialAngle) {
+    public ZeroYawAndPosition(double initialAngle) {
         Robot.yawNavX.setInitialAngle(initialAngle);
     }
 
-    public ZeroYaw(double initialX, double initialY, double initialAngle) {
+    public ZeroYawAndPosition(double initialX, double initialY, double initialAngle) {
         this.initialX = initialX;
         this.initialY = initialY;
         Robot.yawNavX.setInitialAngle(initialAngle);
@@ -37,15 +38,15 @@ public class ZeroYaw extends CommandBase {
     // Called just before this Command runs the first time
     @Override
     public void initialize() {
-        logf("Hit Zero Yaw\n");
         if (Robot.yawNavX != null) {
             Robot.yawNavX.zeroYaw();
         }
         // Reset the drive encodeers for easy debugging
         Robot.drivetrain.resetEncoders();
+        
         if (Robot.drivetrain != null) {
             double yaw = Robot.yaw;
-            Rotation2d gyroAngle = Rotation2d.fromDegrees(-yaw + 90);
+            gyroAngle = Rotation2d.fromDegrees(-yaw + 90);
             Robot.drivetrain.odometry = new DifferentialDriveOdometry(gyroAngle,
                     new Pose2d(initialX, initialY, gyroAngle));
         }
@@ -59,7 +60,7 @@ public class ZeroYaw extends CommandBase {
     // Make this return true when this Command no longer needs to run execute()
     @Override
     public boolean isFinished() {
-        logf("Zero Yaw and Position yaw:%.2f x:%.3f y:%.3f\n", Robot.yaw, initialX, initialY);
+        logf("Zero Yaw and Position yaw:%.2f x:%.3f y:%.3f gyro:%.2f\n", Robot.yaw, initialX, initialY,  gyroAngle.getDegrees() ) ;
         return true;
     }
 

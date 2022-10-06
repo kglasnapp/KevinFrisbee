@@ -18,7 +18,7 @@ public class Lidar extends SubsystemBase {
     private final int LIDAR_ADDR = 0x62;
     private final int LIDAR_CONFIG_REGISTER = 0x00;
     private int lidarErrors = 0;
-    private MySolenoid light;
+    private MySolenoidPCM light;
     private double lastDist;
     private boolean lidarValid = false;
 
@@ -31,7 +31,7 @@ public class Lidar extends SubsystemBase {
         updater = new java.util.Timer();
         setup();
         Timer.delay(.030);
-        light = new MySolenoid("Test",1, 1, 1);
+        light = new MySolenoidPCM("Test",1, 5, -5, false);
         light.setA(true);
         start();
     }

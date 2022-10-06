@@ -33,9 +33,9 @@ public class Util {
     }
 
     public static void loginfo(String pattern, Object... arguments) {
-        if(Robot.logging) logf(pattern, arguments);
-      }
-  
+        if (Robot.logging)
+            logf(pattern, arguments);
+    }
 
     // Rounding Methods
 
@@ -80,10 +80,6 @@ public class Util {
         return i * 2.54 / 100;
     }
 
-    // Convert feet to meters
-    public  static double ftm(double f) {   // Is this correct? there are definately not 12 feet in a meter but this is what was in the old code base
-        return itm(f * 12);
-    }
 
     public static String showFileTime() {
         File file = new File("/home/lvuser/robotCommand");
@@ -99,4 +95,15 @@ public class Util {
         Util.log("**********************************************************************");
     }
 
+    public static double range(double val, double fromMin, double fromMax, double toMin, double toMax) {
+        return (val - fromMin) * (toMax - toMin) / (fromMax - fromMin) + toMin;
+    }
+
+    public static double clip(double number, double min, double max) {
+        if (number < min)
+            return min;
+        if (number > max)
+            return max;
+        return number;
+    }
 }

@@ -22,7 +22,7 @@ import frc.robot.Robot;
 // It should also change the direction reported for "PID0" in a self-test snapshot, 
 // but not the position reported by "Quad/MagEnc(rel)" 
 
-public class MotorSRX  extends SubsystemBase implements MotorInterface { 
+public class MotorSRX  extends SubsystemBase implements MotorDef { 
     private TalonSRX motor;
     private TalonSRX followMotor;
     private String name;

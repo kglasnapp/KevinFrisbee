@@ -8,10 +8,12 @@ import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.Config.RobotType;
 import frc.robot.commands.TestCmd;
-import frc.robot.commands.ZeroYaw;
+import frc.robot.commands.ZeroYawAndPosition;
 import frc.robot.subsystems.Joysticks;
 import frc.robot.commands.DriveStraight;
+import frc.robot.commands.KevinShooterCmd;
 import frc.robot.commands.DriveStraight.DriveMode;
+import frc.robot.commands.KevinShooterCmd.ShooterMode;
 
 /**
  * This class is the glue that binds the controls on the physical operator
@@ -42,7 +44,9 @@ public class OI {
   void KevinOI() {
     //Joystick driver = Robot.joysticks.getDriverPad();
     Joystick op = Robot.joysticks.getOperatorPad();
-    new ButtonHandler(op, 4, Action.PRESSED, new ZeroYaw(), "Zero Yaw");
+    new ButtonHandler(op, 4, Action.PRESSED, new ZeroYawAndPosition(), "Zero Yaw");
+    new ButtonHandler(op, 6, Action.PRESSED, new KevinShooterCmd(ShooterMode.SHOOT), "Shoot");
+  
     SmartDashboard.putData("For 3'", new DriveStraight(DriveMode.RELATIVE_INCHES,
         36, .3, 5));
     SmartDashboard.putData("Back 3'", new DriveStraight(DriveMode.RELATIVE_INCHES, -36, .3, 5, true));
@@ -51,6 +55,7 @@ public class OI {
     SmartDashboard.putData("Back 1'", new DriveStraight(DriveMode.RELATIVE_INCHES, -12, .3, 5, true));
     SmartDashboard.putData("For 3'|.3|30D", new DriveStraight(DriveMode.RELATIVE_INCHES, false, 30, 36, .3, 5));
     SmartDashboard.putData("For 1'|.3|30D", new DriveStraight(DriveMode.RELATIVE_INCHES, false, 30, 12, .3, 5));
+    SmartDashboard.putData("Reverse Shooter", new KevinShooterCmd(ShooterMode.REVERSE_SHOOTER));
     
   }
 

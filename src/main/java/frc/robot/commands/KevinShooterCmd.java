@@ -8,20 +8,19 @@ import frc.robot.Robot;
 public class KevinShooterCmd extends CommandBase {
 
     public enum ShooterMode {
-        RUNNING, STOPPED, SHOOT,  SET_SHOOTER_SPEED_SLOW, SET_SHOOTER_SPEED_MEDIUM,
-        SET_SHOOTER_SPEED_FAST, SHOOTER_OFF, SET_SHOOTER_VELOCITY, REVERSE_SHOOTER
+        RUNNING, STOPPED, SHOOT, SET_SHOOTER_SPEED_SLOW, SET_SHOOTER_SPEED_MEDIUM,
+        SET_SHOOTER_SPEED_FAST, SHOOTER_OFF, SET_SHOOTER_SPEED, REVERSE_SHOOTER
     };
 
     private ShooterMode mode = ShooterMode.STOPPED;
 
     enum State {
-        IDLE, START_SHOOT,  WAIT_FOR_SPEED
+        IDLE, START_SHOOT, DROP_FRISBEE, PUSH_FRISBEE, WAIT_FOR_SPEED, SHOOTER_REVERSE
     };
 
     private State state = State.IDLE;
     private int delay = 0; // used to do timing for error time out
     private int overallDelay = 500;
-
 
     private double data; // Input data received type of data depends on the mode
 
@@ -29,6 +28,14 @@ public class KevinShooterCmd extends CommandBase {
         // Use requires() here to declare subsystem dependencies
         // addRequirements(Robot.intake);
         this.mode = mode;
+    }
+
+    // For mode == SET_SHOOTER_SPEED data is the speed for the shooter -1 to + 1
+    public KevinShooterCmd(ShooterMode mode, double data) {
+        // Use requires() here to declare subsystem dependencies
+        // addRequirements(Robot.intake);
+        this.mode = mode;
+        this.data = data;
     }
 
     // Called when the command is initially scheduled.
@@ -52,26 +59,27 @@ public class KevinShooterCmd extends CommandBase {
                 Robot.compressor.stop();
                 break;
             case SET_SHOOTER_SPEED_SLOW:
-                Robot.shooter.setShooterSpeed(0.33); // change to .33 only after a test shot
+                Robot.shooter.setShooterSpeed(Robot.config.ShooterSpeedLow); // change to .33 only after a test shot
                 break;
             case SET_SHOOTER_SPEED_MEDIUM:
-                Robot.shooter.setShooterSpeed(0.55);
+                Robot.shooter.setShooterSpeed(Robot.config.ShooterSpeedMedium);
                 break;
             case SET_SHOOTER_SPEED_FAST:
-                Robot.shooter.setShooterSpeed(0.65);
+                Robot.shooter.setShooterSpeed(Robot.config.ShooterSpeedHigh);
                 break;
             case SHOOTER_OFF:
                 Robot.shooter.setShooterSpeed(0);
                 break;
-            case SET_SHOOTER_VELOCITY:
+            case SET_SHOOTER_SPEED:
                 if (data == 0) {
                     Robot.shooter.stopShooter();
                     break;
                 }
-                Robot.shooter.setShooterVelocity(data);
+                Robot.shooter.setShooterSpeed(data);
                 break;
             case REVERSE_SHOOTER:
-                Robot.shooter.shooterOut();
+                Robot.shooter.shooterReverse();
+                delay = 50 * 2;
                 break;
         }
     }
@@ -97,25 +105,52 @@ public class KevinShooterCmd extends CommandBase {
             case IDLE:
                 return true;
             case START_SHOOT:
-                // See if ball sensors valid and working
-                // Make sure shooter speed is valid is not wait a bit for the speed to come up
-                if (!isShootSpeedValid()) {
-                    state = State.WAIT_FOR_SPEED;
-                    delay = 10;
-                    return false;
-                }
-                // Ball is present at rear, front ball moved out of the way, shooter speed OK
-                // Everything seems OK so kick fribee into shooter
+                state = State.DROP_FRISBEE;
+                Robot.shooter.activateDroper();
+                logf("Start Shoot sequence\n");
                 delay = 10;
                 return false;
-            // Wait a bit for the shooter to come up to speed
-            case WAIT_FOR_SPEED:
+            case DROP_FRISBEE:
                 delay--;
                 if (delay < 0) {
-                    logf("!!!!! Shooter not up to speed in allocated time\n");
+                    Robot.shooter.releaseDroper();
+                    logf("Frisbee dropped\n");
+                    state = State.WAIT_FOR_SPEED;
                 }
+                return false;
+
+            case WAIT_FOR_SPEED:
+                delay--;
                 if (isShootSpeedValid()) {
-                    state = State.START_SHOOT;
+                    Robot.shooter.activatePusher();
+                    state = State.PUSH_FRISBEE;
+                    logf("Push Frisbee into shooter\n");
+                    delay = 10;
+                }
+                if (delay < 0) {
+                    logf("!!!!! Shooter not up to speed in allocated time\n");
+                    // TODO Do rumble on operator PAD
+                    state = State.IDLE;
+                    return true;
+                }
+                return false;
+
+            case PUSH_FRISBEE:
+                delay--;
+                if (delay < 0) {
+                    // Frisbee should have been launched
+                    Robot.shooter.releasePusher();
+                    state = State.IDLE;
+                    return true;
+                }
+                return false;
+
+            case SHOOTER_REVERSE:
+                delay--;
+                if (delay < 0) {
+                    Robot.shooter.stopShooter();
+                    state = State.IDLE;
+                    return true;
                 }
                 return false;
         }
@@ -127,25 +162,11 @@ public class KevinShooterCmd extends CommandBase {
     }
 
     boolean isShootSpeedValid() {
-        double tolerance = 800; // The varation of allowed speed
-        double speed = Robot.shooter.getShooterSpeed();
-        double requestedVelocity = Robot.shooter.getRequestedVelocity();
-        if (Math.abs(speed - requestedVelocity) <= tolerance) {
+        double current = Robot.shooter.getMotorCurrent();
+        if (current < 5.0 && current > 2.0) {
             return true;
         }
-
-        // Shooter req .33 peed:28165 29365 32503 31439
-        // Shooter req .55 speed:54144 52960
-        // Shooter req .60 speed 57296
-        // Shooter req .70 speed 66760 66496
-        // Shooter req .80 speed 73984
-
-        // Shooter data
-        // .55 Shoots 88.5"
-        // .60 shoots 105"
-
-        logf("Shoot speed too low speed:%.2f requested:%.2f\n", speed, requestedVelocity);
+        logf("!!!!! Shooter current too high or low for shooting current:%.2f\n", current);
         return false;
-
     }
 }

@@ -32,6 +32,8 @@ public class SetDriveMode extends CommandBase {
     public boolean isFinished() {
         logf("Set Drive mode to mode:%s\n", Robot.driveMode);
         // Robot.driveMode = Robot.DriveMode.OPERATOR_MILD;
+        Robot.driveArcade = false;
+        Robot.driveJoy = false;
         switch (Robot.driveMode) {
             case JOY_AGRESSIVE:
                 Robot.drivetrain.setAggresiveMode();
@@ -45,12 +47,17 @@ public class SetDriveMode extends CommandBase {
                 break;
             case OPERATOR_AGRESSIVE:
                 Robot.drivetrain.setAggresiveMode();
-                Robot.driveJoy = false;
                 break;
             case OPERATOR_MILD:
                 Robot.drivetrain.setMildMode();
-                Robot.driveJoy = false;
                 break;
+            case ARCADE_AGRESSIVE:
+            Robot.drivetrain.setAggresiveMode();
+            Robot.driveArcade = true;
+            break;
+            case ARCADE_MILD:
+            Robot.drivetrain.setMildMode();
+            Robot.driveArcade = true;
             case NOT_ASSIGNED:
                 logf("!!!!!!!!!!!!  Error should never call command SetDriveModee with NOT_ASSIGNED\n");
                 break;

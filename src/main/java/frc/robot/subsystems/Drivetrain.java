@@ -1,15 +1,17 @@
 package frc.robot.subsystems;
 
+import static frc.robot.utilities.Util.clip;
+import static frc.robot.utilities.Util.logf;
+
+import com.ctre.phoenix.motorcontrol.FeedbackDevice;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Robot;
 import frc.robot.Config.RobotType;
-
-import static frc.robot.utilities.Util.logf;
-import com.ctre.phoenix.motorcontrol.FeedbackDevice;
+import frc.robot.Robot;
 
 public class Drivetrain extends SubsystemBase {
 
@@ -128,8 +130,8 @@ public class Drivetrain extends SubsystemBase {
                     new Pose2d(Robot.config.initialPoseX, Robot.config.initialPoseY, gyroAngle));
         }
         if (Robot.count % 50 == 25) {
-            SmartDashboard.putNumber("Right In", rightDistInches());
-            SmartDashboard.putNumber("Left In", leftDistInches());
+            SmartDashboard.putNumber("Right Inch", rightDistInches());
+            SmartDashboard.putNumber("Left Inch", leftDistInches());
             SmartDashboard.putNumber("Right Enc", getRightEncoder());
             SmartDashboard.putNumber("Left Enc", getLeftEncoder());
         }
@@ -149,6 +151,10 @@ public class Drivetrain extends SubsystemBase {
         if (Robot.oi.driveStraightReleased()) {
             logf("Drive Straight finish goal:%.2f yaw:%.2f\n", targetAngle, yaw);
             targetAngle = null;
+        }
+        if (Robot.driveArcade) {
+            arcadeMode();
+            return;
         }
         double sensitivity = 1.0;
 
@@ -312,6 +318,8 @@ public class Drivetrain extends SubsystemBase {
     public void resetEncoders() {
         rightMotor.zeroEncoder();
         leftMotor.zeroEncoder();
+        rightStart = 0;
+        leftStart = 0;
     }
 
     public void setPosition(int rightTicks, int leftTicks) {
@@ -319,4 +327,14 @@ public class Drivetrain extends SubsystemBase {
         leftMotor.setPos(leftMotor.getPos() + leftTicks);
     }
 
+    private void arcadeMode() {
+        double yValue = Joysticks.operator.getRawAxis(1) * -1;
+        double xValue = Joysticks.operator.getRawAxis(0) * -1;
+
+        double leftPower = yValue - xValue;
+        double rightPower = yValue + xValue;
+
+        leftMotor.setSpeed(clip(leftPower, -1.0, 1.0));
+        rightMotor.setSpeed(clip(rightPower, -1.0, 1.0));
+    }
 }

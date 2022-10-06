@@ -8,6 +8,8 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
+import edu.wpi.first.wpilibj.PneumaticsModuleType;
+
 public class Config {
 
     // Default parameters should defaults for the competition Robot
@@ -75,14 +77,15 @@ public class Config {
     public boolean powerHubToDashBoard = false;
     public int blinkerChannel = 13;
     public boolean ColorSensor = false;
+    public PneumaticsModuleType pneumaticType = PneumaticsModuleType.REVPH;
 
     // Shooter parameters
     public boolean shooter = true;
     public boolean shooterVelocityPID = true;
     public int shooterID = 12;
-    public double ShooterSpeedPIDLow = 2000;
-    public double ShooterSpeedPIDMedium = 5000;
-    public double ShooterSpeedPIDHigh = 10000;
+    public double ShooterSpeedLow = .1;
+    public double ShooterSpeedMedium = .3;
+    public double ShooterSpeedHigh = .5;
 
     public int ballLiftDelay = 20;
     public double beaterBarSpeed = 0.75; // Changed from .85 used at WPB, 0.75
@@ -121,11 +124,13 @@ public class Config {
         logf("Start of Robot Config for %s\n", robotType);
         switch (robotType) {
             case Kevin:
+                pneumaticType = PneumaticsModuleType.CTREPCM;
                 if (isMini()) {
                     logf("Set parms for Mini Sibling\n");
                     driveRightFollow = -4;
                     driveLeftFollow = -5;
-                    driveTicksPerInch = 959 / 24;
+                    driveTicksPerInch = 525 / 24;
+                    pneumaticType = PneumaticsModuleType.REVPH;
                 }
                 shooterID = 12;
                 ultraSonicDistance = false;
