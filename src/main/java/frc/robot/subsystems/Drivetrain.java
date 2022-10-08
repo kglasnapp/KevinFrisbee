@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import static frc.robot.utilities.Util.clip;
 import static frc.robot.utilities.Util.logf;
+import static frc.robot.utilities.Util.round2;
 
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 
@@ -15,8 +16,8 @@ import frc.robot.Robot;
 
 public class Drivetrain extends SubsystemBase {
 
-    private MotorFX rightMotor;
-    private MotorFX leftMotor;
+    private MotorSRX rightMotor;
+    private MotorSRX leftMotor;
 
     private double rightSpeed = 0;
     private double leftSpeed = 0;
@@ -42,13 +43,21 @@ public class Drivetrain extends SubsystemBase {
     Pose2d lastPose;
 
     public Drivetrain() {
-        rightMotor = new MotorFX("Right", Robot.config.driveRight, Robot.config.driveRightFollow, true);
-        leftMotor = new MotorFX("Left", Robot.config.driveLeft, Robot.config.driveLeftFollow, true);
+        rightMotor = new MotorSRX("Right", Robot.config.driveRight, Robot.config.driveRightFollow, true);
+        leftMotor = new MotorSRX("Left", Robot.config.driveLeft, Robot.config.driveLeftFollow, true);
         rightMotor.setBrakeMode(brakeMode);
         leftMotor.setBrakeMode(brakeMode);
         rightMotor.zeroEncoder();
         leftMotor.zeroEncoder();
-        rightMotor.setInverted(true);
+        if (Robot.config.invertDrivetrain) {
+            logf("Set Right and Left motors to  inverted\n");
+            rightMotor.setInverted(false);
+            leftMotor.setInverted(true);
+        } else {
+            logf("Set Right and Left motors to not inverted\n");
+            rightMotor.setInverted(true);
+            leftMotor.setInverted(false);
+        }
         leftMotor.setSensorPhase(true);
         rightMotor.setSensorPhase(false);
         if (Robot.config.getRobotType() == RobotType.Competition) {
@@ -60,8 +69,8 @@ public class Drivetrain extends SubsystemBase {
         }
         rightMotor.setPositionPID(positionPID, FeedbackDevice.CTRE_MagEncoder_Relative); // set pid for SRX
         leftMotor.setPositionPID(positionPID, FeedbackDevice.CTRE_MagEncoder_Relative); // set pid for SRX
-        rightMotor.setRampRate(rampTime);
-        leftMotor.setRampRate(rampTime);
+        rightMotor.setRampOpenLoop(rampTime);
+        leftMotor.setRampOpenLoop(rampTime);
     }
 
     public void setAggresiveMode() {
@@ -84,8 +93,8 @@ public class Drivetrain extends SubsystemBase {
     }
 
     public void setRampRate(double rampTime) {
-        rightMotor.setRampRate(rampTime);
-        leftMotor.setRampRate(rampTime);
+        rightMotor.setRampOpenLoop(rampTime);
+        leftMotor.setRampOpenLoop(rampTime);
     }
 
     public void setSpeed(double right, double left) {
@@ -130,8 +139,8 @@ public class Drivetrain extends SubsystemBase {
                     new Pose2d(Robot.config.initialPoseX, Robot.config.initialPoseY, gyroAngle));
         }
         if (Robot.count % 50 == 25) {
-            SmartDashboard.putNumber("Right Inch", rightDistInches());
-            SmartDashboard.putNumber("Left Inch", leftDistInches());
+            SmartDashboard.putNumber("Right Inch", round2(rightDistInches()));
+            SmartDashboard.putNumber("Left Inch", round2(leftDistInches()));
             SmartDashboard.putNumber("Right Enc", getRightEncoder());
             SmartDashboard.putNumber("Left Enc", getLeftEncoder());
         }
@@ -139,8 +148,8 @@ public class Drivetrain extends SubsystemBase {
             lastPose = pose;
             pose = odometry.update(gyroAngle, leftDistInches(), rightDistInches());
             if (Robot.count % 50 == 0) {
-                SmartDashboard.putNumber("PoseX", pose.getX());
-                SmartDashboard.putNumber("PoseY", pose.getY());
+                SmartDashboard.putNumber("PoseX", round2(pose.getX()));
+                SmartDashboard.putNumber("PoseY", round2(pose.getY()));
             }
         }
         turboMode = Robot.oi.turboMode();
@@ -171,8 +180,8 @@ public class Drivetrain extends SubsystemBase {
 
         // Adjust the ramp rate to make it easier to drive
         // Ramping will also put less strain on the motors
-        rightJoy = ramp(rightJoy, rightSpeed, rightMotor);
-        leftJoy = ramp(leftJoy, leftSpeed, leftMotor);
+        rightJoy = ramp(rightJoy, rightSpeed, "Right");
+        leftJoy = ramp(leftJoy, leftSpeed, "Left");
 
         showDriveLog = Math.abs(rightJoy) > .06 || Math.abs(leftJoy) > .06;
         if (showDriveLog && Robot.count % 100 == 0) {
@@ -215,7 +224,7 @@ public class Drivetrain extends SubsystemBase {
         rightJoy = averageJoy + factor;
     }
 
-    double rampCubed(double joy, double speed, MotorFX motor) {
+    double rampCubed(double joy, double speed, String side) {
         double result;
         result = 0; // Set to 0 for default case i.e. in dead zone
         if (joy > deadZone) {
@@ -224,11 +233,15 @@ public class Drivetrain extends SubsystemBase {
         if (joy < -deadZone) {
             result = -intercept + (1 - intercept) * (slope * joy * joy * joy + (1 - slope) * joy);
         }
-        double act = motor.getActualSpeed();
+        double act = 0;
+        if (side == "Right")
+            act = rightMotor.getLastSpeed();
+        if (side == "Left")
+            act = leftMotor.getLastSpeed();
         if (Math.abs(act) > 0.01) {
-            if (Math.abs(lastSpeed - speed) > .05 && motor.getName() == "Right") {
+            if (Math.abs(lastSpeed - speed) > .05 && side == "Right") {
                 logf("Ramp Cubed side:%s joy:%.2f result:%.2f last requested:%.2f motor speed:%.2f slope%.2f\n",
-                        motor.getName(), joy, result, speed, act, slope);
+                        side, joy, result, speed, act, slope);
                 lastSpeed = speed;
             }
         }
@@ -238,9 +251,9 @@ public class Drivetrain extends SubsystemBase {
     boolean rampCub = true;
     double lastSpeed = 0;
 
-    public double ramp(double joy, double speed, MotorFX motor) {
+    public double ramp(double joy, double speed, String side) {
         if (rampCub)
-            return rampCubed(joy, speed, motor);
+            return rampCubed(joy, speed, side);
         double error = Math.abs(speed - joy);
         double newJoy = joy;
         if (error < .04)
@@ -260,8 +273,8 @@ public class Drivetrain extends SubsystemBase {
             }
         }
         // Log ramp data if it changed -- only do for right motor to avoid lots of logs
-        if (Math.abs(lastSpeed - speed) > .05 && motor.getName() == "Right") {
-            logf("Ramp side:%s in joy:%.2f new joy:%.2f speed:%.2f\n", motor.getName(), joy, newJoy, speed);
+        if (Math.abs(lastSpeed - speed) > .05 && side == "Right") {
+            logf("Ramp side:%s in joy:%.2f new joy:%.2f speed:%.2f\n", side, joy, newJoy, speed);
             lastSpeed = speed;
         }
         return newJoy;
@@ -294,7 +307,7 @@ public class Drivetrain extends SubsystemBase {
 
     // Get the distance the robot has traveled in inches
     public double getDistanceInches() {
-        return (Math.abs(rightDistInches()) + Math.abs(rightDistInches())) / 2.0;
+        return (rightDistInches() + rightDistInches()) / 2.0;
     }
 
     public double rightDistInches() {

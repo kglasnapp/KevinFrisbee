@@ -169,8 +169,8 @@ public class Robot extends TimedRobot {
     if (count % 25 == 16) {
       SmartDashboard.putNumber("Yaw", round2(yaw));
     }
-    if (count == 10) {
-      vision.cameraLight(false);
+    if (count == 10  && vision != null) {
+       vision.cameraLight(false);
     }
     if (Robot.count % 5 == 0 && distanceSensors != null) {
       frontDistance = distanceSensors.getFrontDistance();

@@ -1,7 +1,5 @@
 package frc.robot.subsystems;
 
-import com.ctre.phoenix.motorcontrol.FeedbackDevice;
-
 public interface MotorDef {
    // public MotorSrx(String name, int Id, int followId, boolean logging);
 
@@ -25,7 +23,7 @@ public interface MotorDef {
 
     public double getActualVelocity();
 
-    //public TalonSRX getMotorSRX();
+    public void forcePercentMode();
 
     void periodic();
 
@@ -50,8 +48,6 @@ public interface MotorDef {
 
     void setEncoderPosition(double position);
 
-    void setPositionPID(PID pid, FeedbackDevice feedBack);
-
     void setVelocityPID(PID pid);
 
     double getMotorVoltage();
@@ -62,7 +58,7 @@ public interface MotorDef {
 
     public void logMotorVCS();
 
-    public String getMotorsVCS();
+    public String getMotorVCS();
 
     public double getMotorCurrent();
 
@@ -71,7 +67,7 @@ public interface MotorDef {
     // Config the sensor used for Primary PID and sensor direction
     public void setPositionPID(int pidIdx, PID pid);
 
-    void setRampCloseLoopRamp(double rate);
+    void setRampClosedLoop(double rate);
 
-    void setRampOpenLoopRamp(double rate);
+    void setRampOpenLoop(double rate);
 }

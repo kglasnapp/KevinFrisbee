@@ -32,13 +32,12 @@ import static frc.robot.Robot.count;
  */
 
 // Add logic for limit switches and PID
-    //public class MotorSpark extends SubsystemBase implements MotorDef  {
-    public class MotorSpark extends SubsystemBase {
+public class MotorSpark extends SubsystemBase implements MotorDef {
+    // public class MotorSpark extends SubsystemBase {
     private CANSparkMax motor;
     private CANSparkMax followMotor;
     private String name;
     private int followId;
-    private double speed;
     private double lastSpeed;
     private long encoder;
     private long lastEncoder;
@@ -53,13 +52,12 @@ import static frc.robot.Robot.count;
     private long periodicHit = 0;
     private SparkMaxLimitSwitch forwardSwitch;
     private SparkMaxLimitSwitch reverseSwitch;
-    // private CANPIDController pidController;
-    private PID pid;
     private boolean myLogging = false;
     private double desiredPositionTicks;
     public double posConversionFactor = 1000;
     public RelativeEncoder relEncoder;
     public RelativeEncoder relEncoderFollow;
+    private int lastPos = 0;
 
     MotorSpark(String name, int id, int followId, boolean logging) {
         this.name = name;
@@ -82,7 +80,7 @@ import static frc.robot.Robot.count;
 
         forwardSwitch = motor.getForwardLimitSwitch(SparkMaxLimitSwitch.Type.kNormallyOpen);
         reverseSwitch = motor.getReverseLimitSwitch(SparkMaxLimitSwitch.Type.kNormallyOpen);
-       
+
         if (followId > 0)
             logf("Created %s dual motors ids:<%d,%d> firmware:<%s,%s> Position Conversion Factor:<%f,%f>\n", name, id,
                     followId, motor.getFirmwareString(), followMotor.getFirmwareString(),
@@ -92,25 +90,34 @@ import static frc.robot.Robot.count;
                     motor.getFirmwareString(), relEncoder.getPositionConversionFactor());
     }
 
-    public void enableLimitSwitch(boolean forward, boolean reverse){
+    public void enableLimitSwitch(boolean forward, boolean reverse) {
         forwardSwitch.enableLimitSwitch(forward);
         reverseSwitch.enableLimitSwitch(reverse);
     }
 
-    public void setPositionPID(PID pid, boolean sensorPhase) {
+    public void setPositionPID(int slot, PID pid) {
         // Sensor phase for Rev motors is not needed
         // https://www.chiefdelphi.com/t/sparkmax-setinverted-affecting-pid-position-control/343315
-        this.pid = pid;
-        PIDToRevMotor(0);
+        PIDToMotor(pid, 0, 0);
+    }
 
+    public void setSensorPhase(boolean value) {
+        // Sensor phase for Rev motors is not needed since encoder is part of the motor
+    }
+
+    public void setInverted(boolean value) {
+        motor.setInverted(value);
     }
 
     public void setVelocityPID(PID pid) {
-        this.pid = pid;
-        PIDToRevMotor(1);
+        PIDToMotor(pid, 1, 0);
     }
 
-    public void setCurrentLimit(int stallLimit, int freeLimit) {
+    public void forcePercentMode() {
+       // use the function set speed to force percent mode
+    }
+
+    public void setCurrentLimit(int stallLimit, int freeLimit, int timeOut) {
         motor.setSmartCurrentLimit(stallLimit, freeLimit);
         if (followMotor != null)
             followMotor.setSmartCurrentLimit(stallLimit, freeLimit);
@@ -124,6 +131,11 @@ import static frc.robot.Robot.count;
     }
 
     public double getSpeed() {
+        // return lastSpeed;
+        return relEncoder.getVelocity();
+    }
+
+    public double getActualVelocity() {
         // return lastSpeed;
         return relEncoder.getVelocity();
     }
@@ -153,9 +165,29 @@ import static frc.robot.Robot.count;
         }
         if (lastSpeed == speed)
             return;
-        this.speed = speed;
         motor.set(speed);
         lastSpeed = speed;
+    }
+
+    public void setSpeedAbsolute(double speed) {
+        // Make up for bug in Rev motor in which setting speed to 0 does not work
+        // You must set a speed slightly away from zero
+        if (speed < 0.001 && speed > -0.001) {
+            motor.stopMotor();
+            lastSpeed = 0;
+        } else {
+            motor.set(speed);
+            lastSpeed = speed;
+        }
+    }
+
+    public void setVelocity(double velocity) {
+        motor.getPIDController().setReference(velocity, CANSparkMax.ControlType.kVelocity);
+    }
+
+    public void stopMotor() {
+        motor.stopMotor();
+        lastSpeed = 0;
     }
 
     public void setVolts(double volts) {
@@ -203,17 +235,36 @@ import static frc.robot.Robot.count;
         // m_pidController.setReference(rotations, ControlType.kPosition);
     }
 
-    public void stopPid() {
-        motor.getPIDController().setReference(0, CANSparkMax.ControlType.kVoltage);
-    }
-
     // Rate time in seconds to go from idle to full speed
-    void setopenLoopRamp(double rate) {
+    public void setRampOpenLoop(double rate) {
+        motor.setOpenLoopRampRate(rate);
+    };
+
+    public void setRampClosedLoop(double rate) {
         motor.setOpenLoopRampRate(rate);
     };
 
     SparkMaxPIDController getPIDController() {
         return motor.getPIDController();
+    }
+
+    public void logPeriodic() {
+        int pos = getPos();
+        if (pos != lastPos) {
+            lastPos = pos;
+            if (myLogging) {
+                if (followId > 0) {
+                    logf(getMotorVCS(motor) + getMotorVCS(followMotor));
+                } else {
+                    logf(getMotorVCS(motor));
+                }
+            }
+        }
+    }
+
+    public void updateSmart() {
+        SmartDashboard.putNumber(name + " Pos", getPos());
+        SmartDashboard.putNumber(name + " Cur", round2(motor.getOutputCurrent()));
     }
 
     public void periodic() {
@@ -257,7 +308,7 @@ import static frc.robot.Robot.count;
                 break;
             case 8:
                 if (periodicHit % 4 == 0 && myLogging && encoderHit)
-                    logf("%s motor sp:%.2f cur:%.2f temp:%.2f vel:%.2f pos:%d\n", name, speed, current, temperature,
+                    logf("%s motor sp:%.2f cur:%.2f temp:%.2f vel:%.2f pos:%d\n", name, lastSpeed, current, temperature,
                             velocity, encoder);
                 break;
             case 9:
@@ -301,6 +352,24 @@ import static frc.robot.Robot.count;
         }
     }
 
+    public String getMotorVCS() {
+        return getMotorVCS(motor);
+    }
+
+    private String getMotorVCS(CANSparkMax motor) {
+        if (Math.abs(lastSpeed) > .02) {
+            double bussVoltage = motor.getBusVoltage();
+            double outputCurrent = motor.getOutputCurrent();
+            return String.format("%s motor volts:%.2f cur:%.2f power:%.2f sp:%.3f", name, bussVoltage,
+                    outputCurrent, bussVoltage * outputCurrent, lastSpeed);
+        }
+        return name + "Not Running";
+    }
+
+    public double getLastSpeed() {
+        return lastSpeed;
+    }
+
     public void logMotorVCS() {
         // if (Math.abs(motor.get()) < .01)
         // logf("%s motor not Running\n", name);
@@ -329,7 +398,7 @@ import static frc.robot.Robot.count;
         }
     }
 
-    void PIDToRevMotor(int slot) {
+    public void PIDToMotor(PID pid, int slot, int timeOut) {
         logf("Setup %s REV PID %s\n", name, pid.getPidData());
         SparkMaxPIDController ctrl = motor.getPIDController();
         // set PID coefficients

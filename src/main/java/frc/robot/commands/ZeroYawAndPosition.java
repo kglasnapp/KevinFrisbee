@@ -25,16 +25,6 @@ public class ZeroYawAndPosition extends CommandBase {
         // Use requires() here to declare subsystem dependencies
     }
 
-    public ZeroYawAndPosition(double initialAngle) {
-        Robot.yawNavX.setInitialAngle(initialAngle);
-    }
-
-    public ZeroYawAndPosition(double initialX, double initialY, double initialAngle) {
-        this.initialX = initialX;
-        this.initialY = initialY;
-        Robot.yawNavX.setInitialAngle(initialAngle);
-    }
-
     // Called just before this Command runs the first time
     @Override
     public void initialize() {

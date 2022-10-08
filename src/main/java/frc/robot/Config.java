@@ -38,6 +38,7 @@ public class Config {
     public int driveRightFollow = 4;
     public int driveLeftFollow = 5;
     public DriveType driveType = DriveType.OperatorTank;
+    public boolean invertDrivetrain = false;
     public double driveTicksPerInch = 987;
     public boolean defaultBrakeMode = true;
     public double wheelBase = 15.5; // Wheel base for mini
@@ -67,7 +68,7 @@ public class Config {
     public boolean ultra1030Front = false;
     public boolean ultra1030Rear = false;
     public int kTimeoutMs = 30; // default timeout used for messages to the SRX
-    public boolean enableCompressor = true;
+    public boolean enableCompressor = false;
     public boolean cameraServer = true;
     public boolean joysticksEnabled = true;
     public boolean operatorPadEnabled = true;
@@ -77,7 +78,7 @@ public class Config {
     public boolean powerHubToDashBoard = false;
     public int blinkerChannel = 13;
     public boolean ColorSensor = false;
-    public PneumaticsModuleType pneumaticType = PneumaticsModuleType.REVPH;
+    public PneumaticsModuleType pneumaticType = PneumaticsModuleType.CTREPCM;
 
     // Shooter parameters
     public boolean shooter = true;
@@ -114,7 +115,7 @@ public class Config {
     public double lowShootSpeedTop = 0.3;
     public double lowShootSpeedBottom = 0.3;
     public final double CERTAIN_SPEED = 0.6;
-    public final boolean Vision = true;
+    public final boolean Vision = false;
 
     Config() {
         if (isMini()) {
@@ -125,12 +126,14 @@ public class Config {
         switch (robotType) {
             case Kevin:
                 pneumaticType = PneumaticsModuleType.CTREPCM;
+                invertDrivetrain = true;
                 if (isMini()) {
                     logf("Set parms for Mini Sibling\n");
                     driveRightFollow = -4;
                     driveLeftFollow = -5;
-                    driveTicksPerInch = 400 / 12;
+                    driveTicksPerInch = 500 / 12;
                     pneumaticType = PneumaticsModuleType.REVPH;
+                    invertDrivetrain = false;
                 }
                 shooterID = 12;
                 ultraSonicDistance = false;

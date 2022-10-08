@@ -196,7 +196,7 @@ public class MotorFX extends SubsystemBase implements MotorDef {
         }
     }
 
-    void forcePercentMode() {
+    public void forcePercentMode() {
         motor.set(ControlMode.PercentOutput, 0.001);
     }
 
@@ -254,18 +254,18 @@ public class MotorFX extends SubsystemBase implements MotorDef {
 
     public void logMotorVCS() {
         if (Math.abs(lastSpeed) > .02) {
-            logf("%s\n", getMotorsVCS(motor));
+            logf("%s\n", getMotorVCS(motor));
             if (followId > 0) {
-                logf("%s\n", getMotorsVCS(followMotor));
+                logf("%s\n", getMotorVCS(followMotor));
             }
         }
     }
 
-    public String getMotorsVCS() {
-        return getMotorsVCS(motor);
+    public String getMotorVCS() {
+        return getMotorVCS(motor);
     }
 
-    private String getMotorsVCS(TalonFX motor) {
+    private String getMotorVCS(TalonFX motor) {
         if (Math.abs(lastSpeed) > .02) {
             double bussVoltage = motor.getBusVoltage();
             double outputVoltage = motor.getMotorOutputVoltage();
@@ -287,12 +287,12 @@ public class MotorFX extends SubsystemBase implements MotorDef {
         motor.setSensorPhase(phase);
     }
 
-    public void setRampCloseLoopRamp(double rate) {
+    public void setRampClosedLoop(double rate) {
         // Rate is secondsFromNeutralToFull
         motor.configClosedloopRamp(rate);
     }
 
-    public void setRampOpenLoopRamp(double rate) {
+    public void setRampOpenLoop(double rate) {
         // Rate is secondsFromNeutralToFull
         motor.configOpenloopRamp(rate);
     }

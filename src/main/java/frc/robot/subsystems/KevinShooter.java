@@ -44,7 +44,7 @@ public class KevinShooter extends SubsystemBase {
       setShooterSpeed(newVelocity);
     }
     if (Robot.count % 500 == 200 && getShooterSpeed() > 0) {
-      logf("Shooter speed:%.2f req:%.2\n", getShooterSpeed(), lastSpeed);
+      logf("Shooter speed:%.2f req:%.2f\n", getShooterSpeed(), lastSpeed);
     }
     if (Robot.count % 15 == 6) {
       SmartDashboard.putNumber("Sh Current", getMotorCurrent());

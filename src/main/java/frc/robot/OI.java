@@ -51,8 +51,8 @@ public class OI {
         36, .3, 5));
     SmartDashboard.putData("Back 3'", new DriveStraight(DriveMode.RELATIVE_INCHES, -36, .3, 5, true));
     SmartDashboard.putData("For 1'", new DriveStraight(DriveMode.RELATIVE_INCHES,
-        12, .3, 5, true));
-    SmartDashboard.putData("Back 1'", new DriveStraight(DriveMode.RELATIVE_INCHES, -12, .3, 5, true));
+        12, .5, 5, true));
+    SmartDashboard.putData("Back 1'", new DriveStraight(DriveMode.RELATIVE_INCHES, -12, .5, 5, true));
     SmartDashboard.putData("For 3'|.3|30D", new DriveStraight(DriveMode.RELATIVE_INCHES, false, 30, 36, .3, 5));
     SmartDashboard.putData("For 1'|.3|30D", new DriveStraight(DriveMode.RELATIVE_INCHES, false, 30, 12, .3, 5));
     SmartDashboard.putData("Reverse Shooter", new KevinShooterCmd(ShooterMode.REVERSE_SHOOTER));

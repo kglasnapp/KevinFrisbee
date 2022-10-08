@@ -56,7 +56,9 @@ public class KevinShooterCmd extends CommandBase {
                 state = State.START_SHOOT;
                 // If after 5 seconds the shoot sequence is not complete something is very wrong
                 overallDelay = 50 * 5;
-                Robot.compressor.stop();
+                if (Robot.config.enableCompressor) {
+                    Robot.compressor.stop();
+                }
                 break;
             case SET_SHOOTER_SPEED_SLOW:
                 Robot.shooter.setShooterSpeed(Robot.config.ShooterSpeedLow); // change to .33 only after a test shot

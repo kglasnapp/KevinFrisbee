@@ -33,7 +33,7 @@ public class MotorSRX  extends SubsystemBase implements MotorDef {
     private boolean myLogging = false;
     private ErrorCode errorCode;
     private boolean sensorPhase = false;
-    private boolean motorInvert = false;
+    //private boolean motorInvert = false;
     private FeedbackDevice feedBackDevice = FeedbackDevice.QuadEncoder;
 
     public MotorSRX(String name, int id, int followId, boolean logging) {
@@ -166,10 +166,13 @@ public class MotorSRX  extends SubsystemBase implements MotorDef {
     }
 
     public void setSpeed(double speed) {
+        if(speed == 0.0){
+            motor.set(ControlMode.PercentOutput, 0);
+        }
         if (speed != lastSpeed) {
             motor.set(ControlMode.PercentOutput, speed);
-            lastSpeed = speed;
         }
+        lastSpeed = speed;
     }
 
     public void setSpeedAbsolute(double speed) {
@@ -194,6 +197,10 @@ public class MotorSRX  extends SubsystemBase implements MotorDef {
         feedBackDevice = feedBack;
         setPositionPID(0, pid);
         PIDToMotor( pid, 0, Robot.config.kTimeoutMs);
+    }
+
+    public void forcePercentMode() {
+        motor.set(ControlMode.PercentOutput, 0.001);
     }
 
     public void setVelocityPID(PID pid) { // tod at some point fix this name
@@ -223,18 +230,18 @@ public class MotorSRX  extends SubsystemBase implements MotorDef {
 
     public void logMotorVCS() {
         if (Math.abs(lastSpeed) > .02) {
-            logf("%s\n", getMotorsVCS());
+            logf("%s\n", getMotorVCS());
             if (followId > 0) {
-                logf("%s\n", getMotorsVCS(followMotor));
+                logf("%s\n", getMotorVCS(followMotor));
             }
         }
     }
 
-    public String getMotorsVCS() {
-        return getMotorsVCS(motor);
+    public String getMotorVCS() {
+        return getMotorVCS(motor);
     }
 
-    private String getMotorsVCS(TalonSRX motor) {
+    private String getMotorVCS(TalonSRX motor) {
         if (Math.abs(lastSpeed) > .02) {
             double bussVoltage = motor.getBusVoltage();
             double outputVoltage = motor.getMotorOutputVoltage();
@@ -265,7 +272,7 @@ public class MotorSRX  extends SubsystemBase implements MotorDef {
 
         // Set based on what direction you want forward/positive to be.
         // This does not affect sensor phase.
-       motor.setInverted(motorInvert);
+       //motor.setInverted(motorInvert);
 
         /* Config the peak and nominal outputs, 12V means full */
        motor.configNominalOutputForward(0, Robot.config.kTimeoutMs);
@@ -278,12 +285,12 @@ public class MotorSRX  extends SubsystemBase implements MotorDef {
        motor.configAllowableClosedloopError(0, pidIdx, Robot.config.kTimeoutMs);
     }
 
-    public  void setRampCloseLoopRamp(double rate) {
+    public  void setRampClosedLoop(double rate) {
         // Rate is secondsFromNeutralToFull
         motor.configClosedloopRamp(rate);
     }
 
-    public void setRampOpenLoopRamp(double rate) {
+    public void setRampOpenLoop(double rate) {
         // Rate is secondsFromNeutralToFull
         motor.configOpenloopRamp(rate);
     }

@@ -24,9 +24,6 @@ public class YawProvider extends SubsystemBase {
   AnalogInput an_in_0;
   AnalogInput an_in_1;
 
-  double initialAngle = 0;
-  
-
   public enum PinType {
     DigitalIO, PWM, AnalogIn, AnalogOut
   };
@@ -56,11 +53,7 @@ public class YawProvider extends SubsystemBase {
 
   public double yaw() {
     double yaw = ahrs.getYaw();
-    return yaw + initialAngle;
-  }
-
-  public void setInitialAngle(double initialAngle) {
-    this.initialAngle = initialAngle;
+    return yaw;
   }
 
   public double getPitch() {
