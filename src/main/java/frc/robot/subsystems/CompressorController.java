@@ -16,7 +16,7 @@ public class CompressorController extends SubsystemBase {
         enabled = Robot.config.enableCompressor;
         Util.logf("Compressor enabled: %b\n", enabled);
         if (enabled) {
-            compressor = new Compressor( PneumaticsModuleType.REVPH);
+            compressor = new Compressor( PneumaticsModuleType.CTREPCM);
             compressor.enabled();
         }
     }

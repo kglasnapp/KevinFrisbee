@@ -46,6 +46,9 @@ public class OI {
     Joystick op = Robot.joysticks.getOperatorPad();
     new ButtonHandler(op, 4, Action.PRESSED, new ZeroYawAndPosition(), "Zero Yaw");
     new ButtonHandler(op, 6, Action.PRESSED, new KevinShooterCmd(ShooterMode.SHOOT), "Shoot");
+    new ButtonHandler(op, 8, Action.PRESSED, new KevinShooterCmd(ShooterMode.DROP_TOP), "Drop Top");
+    new ButtonHandler(op, 7, Action.PRESSED, new KevinShooterCmd(ShooterMode.LIFT_TOP), "Lift Top");
+    new ButtonHandler(op, 1, Action.PRESSED, new KevinShooterCmd(ShooterMode.ARM_TOGGLE), "Toggling Arms");
   
     SmartDashboard.putData("For 3'", new DriveStraight(DriveMode.RELATIVE_INCHES,
         36, .3, 5));
@@ -90,7 +93,7 @@ public class OI {
       return (Joysticks.driver.getRawAxis(5) + Joysticks.driver.getRawAxis(1)) / 2;
     }
     if (Joysticks.leftJoy == null)
-      return (Joysticks.operator.getRawAxis(5) + Joysticks.operator.getRawAxis(1)) / 2;
+      return (Joysticks.operator.getRawAxis(5) + Joysticks.operator.getRawAxis(1)) /1.0;
     return (Joysticks.rightJoy.getY() + Joysticks.leftJoy.getY()) / 2;
   }
 

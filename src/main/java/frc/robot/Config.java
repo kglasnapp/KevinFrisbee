@@ -86,7 +86,7 @@ public class Config {
     public int shooterID = 12;
     public double ShooterSpeedLow = .2;
     public double ShooterSpeedMedium = .3;
-    public double ShooterSpeedHigh = .5;
+    public double ShooterSpeedHigh = 1;
 
     public int ballLiftDelay = 20;
     public double beaterBarSpeed = 0.75; // Changed from .85 used at WPB, 0.75
@@ -103,7 +103,7 @@ public class Config {
     public boolean pigeon = false;
     public boolean BNO055Connected = false;
     public boolean PowerDistributionHub = true;
-    public boolean PneumaticHUB = true;
+    public boolean PneumaticHUB = false;
     public boolean PhotonVision = true;
     public boolean ShowOnSmart = false;
     public boolean BlinkTarget = false;
@@ -129,11 +129,11 @@ public class Config {
                 invertDrivetrain = true;
                 if (isMini()) {
                     logf("Set parms for Mini Sibling\n");
-                    driveRightFollow = -4;
-                    driveLeftFollow = -5;
+                    driveRightFollow = 4;
+                    driveLeftFollow = 5;
                     driveTicksPerInch = 500 / 12;
-                    pneumaticType = PneumaticsModuleType.REVPH;
-                    invertDrivetrain = false;
+                    pneumaticType = PneumaticsModuleType.CTREPCM;
+                    invertDrivetrain = true;
                 }
                 shooterID = 12;
                 ultraSonicDistance = false;

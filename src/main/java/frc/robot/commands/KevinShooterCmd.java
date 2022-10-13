@@ -9,13 +9,13 @@ public class KevinShooterCmd extends CommandBase {
 
     public enum ShooterMode {
         RUNNING, STOPPED, SHOOT, SET_SHOOTER_SPEED_SLOW, SET_SHOOTER_SPEED_MEDIUM,
-        SET_SHOOTER_SPEED_FAST, SHOOTER_OFF, SET_SHOOTER_SPEED, REVERSE_SHOOTER
+        SET_SHOOTER_SPEED_FAST, SHOOTER_OFF, SET_SHOOTER_SPEED, REVERSE_SHOOTER,LIFT_TOP, DROP_TOP, ARM_TOGGLE
     };
 
     private ShooterMode mode = ShooterMode.STOPPED;
 
     enum State {
-        IDLE, START_SHOOT, DROP_FRISBEE, PUSH_FRISBEE, WAIT_FOR_SPEED, SHOOTER_REVERSE, RUMBLE
+        IDLE, START_SHOOT, DROP_FRISBEE, PUSH_FRISBEE, WAIT_FOR_SPEED, SHOOTER_REVERSE, RUMBLE, LIFTING_TOP, DROPING_TOP
     };
 
     private State state = State.IDLE;
@@ -83,6 +83,18 @@ public class KevinShooterCmd extends CommandBase {
                 Robot.shooter.shooterReverse();
                 delay = 50 * 2;
                 break;
+            case LIFT_TOP:
+                Robot.shooter.activateTop();
+                state = State.LIFTING_TOP;
+                delay = 50*2;
+                break;
+            case DROP_TOP:
+                state = State.DROPING_TOP;
+                Robot.shooter.releaseTop();
+                delay = 50*2;
+                break;
+            case ARM_TOGGLE:
+                Robot.shooter.toggleArms();
         }
     }
 
@@ -117,6 +129,7 @@ public class KevinShooterCmd extends CommandBase {
                 if (delay < 0) {
                     Robot.shooter.releaseDroper();
                     logf("Frisbee dropped\n");
+                    delay = 5;
                     state = State.WAIT_FOR_SPEED;
                 }
                 return false;
@@ -167,6 +180,21 @@ public class KevinShooterCmd extends CommandBase {
                     return true;
                 }
                 return false;
+            case LIFTING_TOP:
+                delay--;
+                if (delay <0){
+                    logf("Top Lifted\n");
+                    return true;
+                }
+                return false;
+
+            case DROPING_TOP:
+            delay--;
+                if (delay <0){
+                    logf("Top Lifted\n");
+                    return true;
+                }
+                return false;
         }
         return true;
     }
@@ -177,7 +205,7 @@ public class KevinShooterCmd extends CommandBase {
 
     boolean isShootSpeedValid() {
         double current = Robot.shooter.getMotorCurrent();
-        if (current < 5.0 && current > 2.0) {
+        if (current < 40.0 && current > 1.0) {
             return true;
         }
         logf("!!!!! Shooter current too high or low for shooting current:%.2f\n", current);

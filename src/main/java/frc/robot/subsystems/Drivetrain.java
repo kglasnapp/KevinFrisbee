@@ -139,10 +139,10 @@ public class Drivetrain extends SubsystemBase {
                     new Pose2d(Robot.config.initialPoseX, Robot.config.initialPoseY, gyroAngle));
         }
         if (Robot.count % 50 == 25) {
-            SmartDashboard.putNumber("Right Inch", round2(rightDistInches()));
-            SmartDashboard.putNumber("Left Inch", round2(leftDistInches()));
-            SmartDashboard.putNumber("Right Enc", getRightEncoder());
-            SmartDashboard.putNumber("Left Enc", getLeftEncoder());
+            SmartDashboard.putNumber("Right Curremt", round2(rightMotor.getMotorCurrent()));
+            SmartDashboard.putNumber("Left Current", round2(leftMotor.getMotorCurrent()));
+            SmartDashboard.putNumber("Right Follow", round2(rightMotor.getFollowCurrent()));
+            SmartDashboard.putNumber("Left Follow", round2(leftMotor.getFollowCurrent()));
         }
         if (odometry != null) {
             lastPose = pose;
@@ -205,14 +205,14 @@ public class Drivetrain extends SubsystemBase {
             error = -5;
         }
         // Adjsut speed if too fast
-        double averageJoy = (rightJoy + leftJoy) / 2;
+        double averageJoy = (rightJoy + leftJoy) / 1.0;
         // If turbo mode ignore speed limit
-        if (!turboMode) {
-            if (averageJoy > .6)
-                averageJoy = .6;
-            if (averageJoy < -.6)
-                averageJoy = -.6;
-        }
+        //if (!turboMode) {
+         //   if (averageJoy > .6)
+         //       averageJoy = .6;
+         //   if (averageJoy < -.6)
+         //       averageJoy = -.6;
+        //}
         double factor = error * Math.abs(averageJoy) * 0.035; // Was 0.045
         // Log drive straight data every 2.5 seconds
         if (Robot.count % 12 == 0) {
@@ -341,7 +341,7 @@ public class Drivetrain extends SubsystemBase {
 
     private void arcadeMode() {
         double yValue = Joysticks.operator.getRawAxis(1) * -1;
-        double xValue = Joysticks.operator.getRawAxis(0) * -1;
+        double xValue = Joysticks.operator.getRawAxis(4) * -1;
 
         double leftPower = yValue - xValue;
         double rightPower = yValue + xValue;

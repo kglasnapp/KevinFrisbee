@@ -12,13 +12,16 @@ public class KevinShooter extends SubsystemBase {
   private int lastPOV = -1;
   private MySolenoidPCM pushFrisbee;
   private MySolenoidPCM dropFrisbee;
+  private MySolenoidPCM liftTop;
+  private MySolenoidPCM liftArm;
+  private boolean armsUp = false;
 
   // Current threshold to trigger current limit
-  private int kPeakCurrentAmps = 10;
+  private int kPeakCurrentAmps = 60;
   // Duration after current exceed Peak Current to trigger current limit
   private int kPeakTimeMs = 0;
   // Current to mantain once current limit has been triggered
-  private int kContinCurrentAmps = 5;
+  private int kContinCurrentAmps = 40;
 
   public KevinShooter() {
     shooterMotor = new MotorSRX("Shooter", Robot.config.shooterID, -1, true);
@@ -26,9 +29,17 @@ public class KevinShooter extends SubsystemBase {
     shooterMotor.setCurrentLimit(kPeakCurrentAmps, kContinCurrentAmps, kPeakTimeMs);
     
     // Define the solenoids for the pneumatics
-    pushFrisbee = new MySolenoidPCM("Pusher", 1, 0, 1, true);
-    dropFrisbee = new MySolenoidPCM("Drop", 1, 2, 3, true);
-
+    pushFrisbee = new MySolenoidPCM("Pusher", 1, 3, 2, true);
+    dropFrisbee = new MySolenoidPCM("Drop", 1, 4, 5, true);
+    
+    
+    //pushFrisbee = new MySolenoidPCM("Pusher", 1, 4, 5, true);
+    //dropFrisbee = new MySolenoidPCM("Drop", 1, 3, 2, true);
+    
+    
+    liftTop = new MySolenoidPCM("Top", 1, 6, 7, true);
+    liftArm = new MySolenoidPCM("Arm", 1, 0, 1, true);
+    //arms are 0 and 1
     logf("Kevin shooter is setup at ID:%d\n", Robot.config.shooterID);
   }
 
@@ -91,5 +102,24 @@ public class KevinShooter extends SubsystemBase {
 
   public void releaseDroper() {
     dropFrisbee.pulseB();
+  }
+
+  public void activateTop(){
+    liftTop.pulseA();
+  }
+
+  public void releaseTop(){
+    liftTop.pulseB();
+  }
+  public void toggleArms(){
+    if (armsUp) 
+      {
+        liftArm.pulseB();
+      }
+      else{
+        liftArm.pulseA();
+      }
+      armsUp = !armsUp; 
+
   }
 }

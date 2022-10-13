@@ -258,6 +258,14 @@ public class MotorSRX  extends SubsystemBase implements MotorDef {
         return motor.getStatorCurrent();
     }
 
+    public double getFollowCurrent() {
+        if (followMotor == null) {
+            return 0;
+        }
+    
+        return followMotor.getStatorCurrent();
+    }
+
     public void setSensorPhase(boolean phase) {
         sensorPhase = phase;
         motor.setSensorPhase(phase);
