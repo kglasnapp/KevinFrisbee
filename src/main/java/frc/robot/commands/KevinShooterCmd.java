@@ -9,7 +9,7 @@ public class KevinShooterCmd extends CommandBase {
 
     public enum ShooterMode {
         RUNNING, STOPPED, SHOOT, SET_SHOOTER_SPEED_SLOW, SET_SHOOTER_SPEED_MEDIUM,
-        SET_SHOOTER_SPEED_FAST, SHOOTER_OFF, SET_SHOOTER_SPEED, REVERSE_SHOOTER,LIFT_TOP, DROP_TOP, ARM_TOGGLE
+        SET_SHOOTER_SPEED_FAST, SHOOTER_OFF, SET_SHOOTER_SPEED, REVERSE_SHOOTER,LIFT_TOP, DROP_TOP, ARM_TOGGLE, 
     };
 
     private ShooterMode mode = ShooterMode.STOPPED;
@@ -120,14 +120,14 @@ public class KevinShooterCmd extends CommandBase {
                 return true;
             case START_SHOOT:
                 state = State.DROP_FRISBEE;
-                Robot.shooter.activateDroper();
+                Robot.shooter.releaseDroper();
                 logf("Start Shoot sequence\n");
                 delay = 10;
                 return false;
             case DROP_FRISBEE:
                 delay--;
                 if (delay < 0) {
-                    Robot.shooter.releaseDroper();
+                    Robot.shooter.activateDroper();
                     logf("Frisbee dropped\n");
                     delay = 5;
                     state = State.WAIT_FOR_SPEED;

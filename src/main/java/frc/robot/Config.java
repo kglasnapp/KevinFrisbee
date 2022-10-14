@@ -84,8 +84,8 @@ public class Config {
     public boolean shooter = true;
     public boolean shooterVelocityPID = true;
     public int shooterID = 12;
-    public double ShooterSpeedLow = .2;
-    public double ShooterSpeedMedium = .3;
+    public double ShooterSpeedLow = .5;
+    public double ShooterSpeedMedium = .7;
     public double ShooterSpeedHigh = 1;
 
     public int ballLiftDelay = 20;
