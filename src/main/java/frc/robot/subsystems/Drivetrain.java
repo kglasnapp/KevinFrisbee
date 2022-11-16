@@ -122,6 +122,11 @@ public class Drivetrain extends SubsystemBase {
         rightSpeed = speed;
     }
 
+    public double getBatteryVoltage() {
+        return rightMotor.getBatteryVoltage();
+    }
+
+
     public double getLeftMotorSpeed() {
         return leftSpeed;
     }

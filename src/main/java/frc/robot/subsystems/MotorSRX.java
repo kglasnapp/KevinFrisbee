@@ -211,6 +211,11 @@ public class MotorSRX  extends SubsystemBase implements MotorDef {
         return motor.getMotorOutputVoltage();
     }
 
+    public double getBatteryVoltage() {
+        return motor.getBusVoltage();
+
+    }
+
     public void PIDToMotor( PID pid, int slot, int timeout) {
         motor.config_kP(slot, pid.kP, timeout);
         motor.config_kI(slot, pid.kI, timeout);

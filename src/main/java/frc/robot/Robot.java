@@ -11,6 +11,7 @@ import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PneumaticHub;
+import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -18,7 +19,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frc.robot.Config.RobotType;
+//import frc.robot.Config.RobotType;
 import frc.robot.commands.SetDriveMode;
 import frc.robot.commands.groups.Test;
 import frc.robot.subsystems.CompressorController;
@@ -31,6 +32,7 @@ import frc.robot.subsystems.VisionData;
 import frc.robot.subsystems.VisionLight;
 import frc.robot.subsystems.YawProvider;
 import frc.robot.utilities.MinMaxAvg;
+import frc.robot.utilities.UDPReceiver;
 import frc.robot.subsystems.Lidar;
 
 /**
@@ -72,6 +74,8 @@ public class Robot extends TimedRobot {
   public static DriveMode driveMode = DriveMode.OPERATOR_MILD;
   public static boolean driveJoy = false;
   public static boolean driveArcade = false;
+  public static UDPReceiver udp;
+  PowerDistribution PDH = new PowerDistribution();
 
   public enum DriveMode {
     NOT_ASSIGNED, JOY_AGRESSIVE, JOY_MILD, OPERATOR_AGRESSIVE, OPERATOR_MILD, ARCADE_MILD, ARCADE_AGRESSIVE
@@ -100,7 +104,7 @@ public class Robot extends TimedRobot {
     if (Robot.config.PneumaticHUB)
       pHub = new PneumaticHub();
 
-    if (Config.robotType == RobotType.Kevin) {
+    if (config.shooter) {
       shooter = new KevinShooter();
     }
     if (config.ultraSonicDistance) {
@@ -139,6 +143,12 @@ public class Robot extends TimedRobot {
     // Zero YAW at init
     yawNavX.zeroYaw();
 
+    // Setup for UPD processing
+    if (config.UDP) {
+      UDPReceiver thread = new UDPReceiver();
+      thread.start();
+    }
+
   }
 
   /**
@@ -169,8 +179,8 @@ public class Robot extends TimedRobot {
     if (count % 25 == 16) {
       SmartDashboard.putNumber("Yaw", round2(yaw));
     }
-    if (count == 10  && vision != null) {
-       vision.cameraLight(false);
+    if (count == 10 && vision != null) {
+      vision.cameraLight(false);
     }
     if (Robot.count % 5 == 0 && distanceSensors != null) {
       frontDistance = distanceSensors.getFrontDistance();
@@ -179,6 +189,20 @@ public class Robot extends TimedRobot {
     if (Robot.count % 20 == 10 && vision != null) {
       SmartDashboard.putBoolean("VV", vision.getV());
     }
+
+    // Code for the mini drive station 
+    int disableCount = (int) SmartDashboard.getNumber("Disable", -1);
+    if (disableCount == 3932) {
+      logf("!!!!!!!!!!!!!! Will Disable the robot from mini drive station !!!!!!!!!!!!!\n");
+       // Set Bat Volts to 0 to indicate to the mini drive station that the robot is disabled
+      SmartDashboard.putNumber("BatVolts", 0);
+      System.exit(0); // Disable the robot
+    }
+    if (count % 5 == 0) {
+      SmartDashboard.putNumber("BatVolts", round2(PDH.getVoltage()));
+    }
+
+
 
     // Setup the drive mode if not set
     if (count == 20) {
@@ -217,8 +241,6 @@ public class Robot extends TimedRobot {
     // Determine GC Rate
     long mem = getMemory();
     if (mem > lastMemory) {
-      // logf("!!!!!! Garbage collection mem:%d last:%d last:%.2f\n", mem, lastMemory,
-      // (count - lastGC) * .02);
       gcData.AddData((count - lastGC) * .02);
       lastGC = count;
     }
@@ -228,15 +250,16 @@ public class Robot extends TimedRobot {
     if (count % (50 * 60) == 210) {
       logf("Loop Count %s Garbage Collector %s\n", loopData.Show(true), gcData.Show(true));
     }
-    // if (config.BlinkTarget && (count % 50 == 0)) {
-    // visionLight.toggleTargetingLight();
-    // }
   }
 
   /** This function is called once each time the robot enters Disabled mode. */
   @Override
   public void disabledInit() {
     logf("Robot was disabled\n");
+
+    // Set Bat Volts to 0 to indicate to the mini drive station that the robot is disabled
+    SmartDashboard.putNumber("BatVolts", 0);
+    
     if (shooter != null) {
       shooter.stopShooter(); // stop shooter from spinning on enable if spinning during disable
     }

@@ -107,6 +107,7 @@ public class Config {
     public boolean PhotonVision = true;
     public boolean ShowOnSmart = false;
     public boolean BlinkTarget = false;
+    public boolean UDP = false;
 
     // Shoot Command parameters
     public double conveyorSpeed = 0.7;
@@ -134,6 +135,12 @@ public class Config {
                     driveTicksPerInch = 500 / 12;
                     pneumaticType = PneumaticsModuleType.CTREPCM;
                     invertDrivetrain = true;
+
+                    driveRightFollow = -4;
+                    driveLeftFollow = -5;
+                    driveTicksPerInch = 500 / 12;
+                    pneumaticType = PneumaticsModuleType.CTREPCM;
+                    invertDrivetrain = false;
                 }
                 shooterID = 12;
                 ultraSonicDistance = false;
