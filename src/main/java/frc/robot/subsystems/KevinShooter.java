@@ -27,15 +27,15 @@ public class KevinShooter extends SubsystemBase {
     shooterMotor = new MotorSRX("Shooter", Robot.config.shooterID, -1, true);
     shooterMotor.setBrakeMode(false);
     shooterMotor.setCurrentLimit(kPeakCurrentAmps, kContinCurrentAmps, kPeakTimeMs);
+
     
+    // 2 and 3 is push, 4 and 5 are drop,  0 nd 1 is arm, 6 and 7  top
     // Define the solenoids for the pneumatics
     pushFrisbee = new MySolenoidPCM("Pusher", 1, 3, 2, true);
     dropFrisbee = new MySolenoidPCM("Drop", 1, 4, 5, true);
     
-    
-    //pushFrisbee = new MySolenoidPCM("Pusher", 1, 4, 5, true);
-    //dropFrisbee = new MySolenoidPCM("Drop", 1, 3, 2, true);
-    
+  
+    dropFrisbee.setA(true); // makes it so the pusher is out once we start the robot
     
     liftTop = new MySolenoidPCM("Top", 1, 6, 7, true);
     liftArm = new MySolenoidPCM("Arm", 1, 0, 1, true);
@@ -97,11 +97,11 @@ public class KevinShooter extends SubsystemBase {
   }
 
   public void activateDroper() {
-    dropFrisbee.pulseA();
+    dropFrisbee.setA(true);
   }
 
   public void releaseDroper() {
-    dropFrisbee.pulseB();
+    dropFrisbee.setA(false);
   }
 
   public void activateTop(){
