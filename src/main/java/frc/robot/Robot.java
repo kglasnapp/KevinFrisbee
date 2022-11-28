@@ -143,10 +143,12 @@ public class Robot extends TimedRobot {
     // Zero YAW at init
     yawNavX.zeroYaw();
 
-    // Setup for UPD processing
-    if (config.UDP) {
-      UDPReceiver thread = new UDPReceiver();
-      thread.start();
+    // Add to the end of robotInit()
+    try {
+      udp = new UDPReceiver("Test");
+      Thread t = new Thread(udp);
+      t.start();
+    } catch (Exception e) {
     }
 
   }
@@ -190,19 +192,18 @@ public class Robot extends TimedRobot {
       SmartDashboard.putBoolean("VV", vision.getV());
     }
 
-    // Code for the mini drive station 
+    // Code for the mini drive station
     int disableCount = (int) SmartDashboard.getNumber("Disable", -1);
     if (disableCount == 3932) {
       logf("!!!!!!!!!!!!!! Will Disable the robot from mini drive station !!!!!!!!!!!!!\n");
-       // Set Bat Volts to 0 to indicate to the mini drive station that the robot is disabled
+      // Set Bat Volts to 0 to indicate to the mini drive station that the robot is
+      // disabled
       SmartDashboard.putNumber("BatVolts", 0);
       System.exit(0); // Disable the robot
     }
     if (count % 5 == 0) {
       SmartDashboard.putNumber("BatVolts", round2(PDH.getVoltage()));
     }
-
-
 
     // Setup the drive mode if not set
     if (count == 20) {
@@ -257,9 +258,10 @@ public class Robot extends TimedRobot {
   public void disabledInit() {
     logf("Robot was disabled\n");
 
-    // Set Bat Volts to 0 to indicate to the mini drive station that the robot is disabled
+    // Set Bat Volts to 0 to indicate to the mini drive station that the robot is
+    // disabled
     SmartDashboard.putNumber("BatVolts", 0);
-    
+
     if (shooter != null) {
       shooter.stopShooter(); // stop shooter from spinning on enable if spinning during disable
     }

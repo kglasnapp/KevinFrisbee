@@ -48,7 +48,7 @@ public class OI {
     new ButtonHandler(op, 6, Action.PRESSED, new KevinShooterCmd(ShooterMode.SHOOT), "Shoot");
     new ButtonHandler(op, 8, Action.PRESSED, new KevinShooterCmd(ShooterMode.DROP_TOP), "Drop Top");
     new ButtonHandler(op, 7, Action.PRESSED, new KevinShooterCmd(ShooterMode.LIFT_TOP), "Lift Top");
-    new ButtonHandler(op, 1, Action.PRESSED, new KevinShooterCmd(ShooterMode.ARM_TOGGLE), "Toggling Arms");
+    //new ButtonHandler(op, 1, Action.PRESSED, new KevinShooterCmd(ShooterMode.ARM_TOGGLE), "Toggling Arms");
   
     SmartDashboard.putData("For 3'", new DriveStraight(DriveMode.RELATIVE_INCHES,
         36, .3, 5));

@@ -128,20 +128,7 @@ public class Config {
             case Kevin:
                 pneumaticType = PneumaticsModuleType.CTREPCM;
                 invertDrivetrain = true;
-                if (isMini()) {
-                    logf("Set parms for Mini Sibling\n");
-                    driveRightFollow = 4;
-                    driveLeftFollow = 5;
-                    driveTicksPerInch = 500 / 12;
-                    pneumaticType = PneumaticsModuleType.CTREPCM;
-                    invertDrivetrain = true;
-
-                    driveRightFollow = -4;
-                    driveLeftFollow = -5;
-                    driveTicksPerInch = 500 / 12;
-                    pneumaticType = PneumaticsModuleType.CTREPCM;
-                    invertDrivetrain = false;
-                }
+                
                 shooterID = 12;
                 ultraSonicDistance = false;
                 cameraServer = false;
