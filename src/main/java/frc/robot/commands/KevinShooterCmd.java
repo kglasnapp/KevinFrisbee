@@ -3,7 +3,9 @@ package frc.robot.commands;
 import static frc.robot.utilities.Util.logf;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.Robot;
+import frc.robot.subsystems.Joysticks;
 import frc.robot.utilities.UDPReceiver;
 
 public class KevinShooterCmd extends CommandBase {
@@ -121,35 +123,36 @@ public class KevinShooterCmd extends CommandBase {
             case IDLE:
                 return true;
             case START_SHOOT:
-                if (UDPReceiver.distance > 355 || UDPReceiver.distance < 246) {
-                    delay = 25;
-                    Robot.joysticks.setLeftRumble(1);
-                    Robot.joysticks.setRightRumble(1);
-                    state = State.RUMBLE;
-                    return false;
-                }
-                if (UDPReceiver.angle > 30) {
-                    delay = 25;
-                    Robot.joysticks.setLeftRumble(1);
-                    state = State.RUMBLE;
-                    return false;
-                }
-                if (UDPReceiver.angle < -30) {
-                    delay = 25;
-                    Robot.joysticks.setRightRumble(1);
-                    state = State.RUMBLE;
-                    return false;
+                // the X button number 3 to bypass and allow for shooting
+                if (!Joysticks.operator.getRawButton(3)) {
+                    if (UDPReceiver.distance > 355 || UDPReceiver.distance < 246) {
+                        delay = 25;
+                        Robot.joysticks.setLeftRumble(1);
+                        Robot.joysticks.setRightRumble(1);
+                        state = State.RUMBLE;
+                        return false;
+                    }
+                    if (UDPReceiver.angle > 30) {
+                        delay = 25;
+                        Robot.joysticks.setLeftRumble(1);
+                        state = State.RUMBLE;
+                        return false;
+                    }
+                    if (UDPReceiver.angle < -30) {
+                        delay = 25;
+                        Robot.joysticks.setRightRumble(1);
+                        state = State.RUMBLE;
+                        return false;
 
+                    }
+                    if (!UDPReceiver.targetId.equals("200")) {
+                        delay = 25;
+                        Robot.joysticks.setLeftRumble(1);
+                        Robot.joysticks.setRightRumble(1);
+                        state = State.RUMBLE;
+                        return false;
+                    }
                 }
-                if (!UDPReceiver.targetId.equals("11"))
-                {
-                    delay = 25;
-                    Robot.joysticks.setLeftRumble(1);
-                    Robot.joysticks.setRightRumble(1);
-                    state = State.RUMBLE;
-                    return false;
-                }
-
                 state = State.DROP_FRISBEE;
                 Robot.shooter.releaseDroper();
                 logf("Start Shoot sequence\n");
@@ -211,8 +214,6 @@ public class KevinShooterCmd extends CommandBase {
                     return true;
                 }
                 return false;
-
-           
 
             case LIFTING_TOP:
                 delay--;

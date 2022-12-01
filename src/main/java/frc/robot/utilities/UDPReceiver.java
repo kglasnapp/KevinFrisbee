@@ -1,3 +1,4 @@
+
 package frc.robot.utilities;
 
 import java.io.*;
@@ -36,6 +37,7 @@ public class UDPReceiver implements Runnable {
         byte[] buf = new byte[256];
         DatagramPacket packet = new DatagramPacket(buf, buf.length);
         int count = 0;
+        Util.logf("Going to start the UDP Server:%s\n", 0);
         while (moreQuotes) {
             try {
                 // receive request
@@ -48,13 +50,14 @@ public class UDPReceiver implements Runnable {
                 JSONObject jsonObject = (JSONObject) parser.parse(lastDataReceived);
                 distance = (double) jsonObject.get("distance");
                 angle = (double) jsonObject.get("angle");
-                targetX = (double) jsonObject.get("x");
+                //targetX = (double) jsonObject.get("x");
                 targetId = (String) jsonObject.get("target");
                 if (count % 25 == 16) {
                     SmartDashboard.putNumber("TagAngle", Util.round2(angle));
                     SmartDashboard.putNumber("TagDistance", Util.round2(distance));
                     SmartDashboard.putString("TagId",targetId);
                     count = 0;
+                   // Util.logf("Data from UPD:%s\n", lastDataReceived);
                 }
                 count++;
             } catch (Exception e) { 
