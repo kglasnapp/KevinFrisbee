@@ -201,9 +201,16 @@ public class Robot extends TimedRobot {
       SmartDashboard.putNumber("BatVolts", 0);
       System.exit(0); // Disable the robot
     }
-    if (count % 5 == 0) {
-      SmartDashboard.putNumber("BatVolts", round2(PDH.getVoltage()));
+
+    if (count % 100 == 0) {
+      boolean dis = isDisabled();
+      if (PDH != null) {
+        SmartDashboard.putNumber("BatVolts",  (!dis) ? round2(PDH.getVoltage()) + Math.random() * .1 : -Math.random() * .1 );
+      } else {
+        SmartDashboard.putNumber("BatVolts", (!dis) ? 12.0 + Math.random() * .1 : 0 - Math.random() * .1);
+      }
     }
+  
 
     // Setup the drive mode if not set
     if (count == 20) {
@@ -273,6 +280,7 @@ public class Robot extends TimedRobot {
 
   @Override
   public void disabledPeriodic() {
+    count += 1;
   }
 
   /**
