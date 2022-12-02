@@ -37,6 +37,7 @@ public class Drivetrain extends SubsystemBase {
     private double intercept = .0; // Offset of the ramp
     private double deadZone = 0.04;
     private boolean turboMode = false;
+    private double sensitivity = .8;
 
     public DifferentialDriveOdometry odometry;
     Pose2d pose;
@@ -126,7 +127,6 @@ public class Drivetrain extends SubsystemBase {
         return rightMotor.getBatteryVoltage();
     }
 
-
     public double getLeftMotorSpeed() {
         return leftSpeed;
     }
@@ -212,12 +212,12 @@ public class Drivetrain extends SubsystemBase {
         // Adjsut speed if too fast
         double averageJoy = (rightJoy + leftJoy) / 1.0;
         // If turbo mode ignore speed limit
-        //if (!turboMode) {
-         //   if (averageJoy > .6)
-         //       averageJoy = .6;
-         //   if (averageJoy < -.6)
-         //       averageJoy = -.6;
-        //}
+        // if (!turboMode) {
+        // if (averageJoy > .6)
+        // averageJoy = .6;
+        // if (averageJoy < -.6)
+        // averageJoy = -.6;
+        // }
         double factor = error * Math.abs(averageJoy) * 0.035; // Was 0.045
         // Log drive straight data every 2.5 seconds
         if (Robot.count % 12 == 0) {
@@ -344,9 +344,22 @@ public class Drivetrain extends SubsystemBase {
         leftMotor.setPos(leftMotor.getPos() + leftTicks);
     }
 
+    private double correctForDeadZone(double speed) {
+        if (Math.abs(speed) < deadZone) {
+            return 0;
+        }
+        return speed;
+    }
+
     private void arcadeMode() {
         double yValue = Joysticks.operator.getRawAxis(1) * -1;
         double xValue = Joysticks.operator.getRawAxis(4) * -1;
+
+        yValue = correctForDeadZone(yValue);
+        xValue = correctForDeadZone(xValue);
+
+        yValue *= sensitivity;
+        xValue *= sensitivity;
 
         double leftPower = yValue - xValue;
         double rightPower = yValue + xValue;
