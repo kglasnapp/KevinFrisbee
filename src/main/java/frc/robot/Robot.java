@@ -27,12 +27,10 @@ import frc.robot.subsystems.Sensors;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Joysticks;
 import frc.robot.subsystems.KevinShooter;
-import frc.robot.subsystems.PhotonVision;
 import frc.robot.subsystems.VisionData;
 import frc.robot.subsystems.VisionLight;
 import frc.robot.subsystems.YawProvider;
 import frc.robot.utilities.MinMaxAvg;
-import frc.robot.utilities.UDPReceiver;
 import frc.robot.subsystems.Lidar;
 
 /**
@@ -73,8 +71,7 @@ public class Robot extends TimedRobot {
   public static int location;
   public static DriveMode driveMode = DriveMode.OPERATOR_MILD;
   public static boolean driveJoy = false;
-  public static boolean driveArcade = false;
-  public static UDPReceiver udp;
+  public static boolean driveArcade = true;
   PowerDistribution PDH = new PowerDistribution();
 
   public enum DriveMode {
@@ -118,9 +115,7 @@ public class Robot extends TimedRobot {
       CameraServer.startAutomaticCapture();
     }
 
-    if (config.Vision) {
-      vision = new PhotonVision();
-    }
+   
 
     if (config.BlinkTarget)
       visionLight = new VisionLight();
@@ -143,13 +138,7 @@ public class Robot extends TimedRobot {
     // Zero YAW at init
     yawNavX.zeroYaw();
 
-    // Add to the end of robotInit()
-    try {
-      udp = new UDPReceiver("Test");
-      Thread t = new Thread(udp);
-      t.start();
-    } catch (Exception e) {
-    }
+  
 
   }
 

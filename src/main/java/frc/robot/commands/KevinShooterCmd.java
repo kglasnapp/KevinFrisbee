@@ -6,7 +6,6 @@ import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.Robot;
 import frc.robot.subsystems.Joysticks;
-import frc.robot.utilities.UDPReceiver;
 
 public class KevinShooterCmd extends CommandBase {
 
@@ -125,6 +124,7 @@ public class KevinShooterCmd extends CommandBase {
             case START_SHOOT:
                 // the X button number 3 to bypass and allow for shooting
                 if (!Joysticks.operator.getRawButton(3)) {
+                    /* 
                     if (UDPReceiver.distance > 355 || UDPReceiver.distance < 246) {
                         delay = 25;
                         Robot.joysticks.setLeftRumble(1);
@@ -152,6 +152,7 @@ public class KevinShooterCmd extends CommandBase {
                         state = State.RUMBLE;
                         return false;
                     }
+                    */
                 }
                 state = State.DROP_FRISBEE;
                 Robot.shooter.releaseDroper();

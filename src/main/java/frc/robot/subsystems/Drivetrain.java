@@ -99,8 +99,8 @@ public class Drivetrain extends SubsystemBase {
     }
 
     public void setSpeed(double right, double left) {
-        setRightMotor(right);
-        setLeftMotor(left);
+        setRightMotor(right * 0.5);
+        setLeftMotor(left * 0.5);
     }
 
     public void setLeftMotor(double speed) {
@@ -193,8 +193,8 @@ public class Drivetrain extends SubsystemBase {
             logf("Pos L:%d R:%d Joy L:%.2f R:%.2f\n", leftMotor.getPos(), rightMotor.getPos(), leftJoy,
                     rightJoy);
         }
-        setLeftMotor(leftJoy);
-        setRightMotor(rightJoy);
+        setLeftMotor(leftJoy * .6);
+        setRightMotor(rightJoy  * .6);
     }
 
     void driveStraight() {
